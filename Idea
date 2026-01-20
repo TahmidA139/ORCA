@@ -6,6 +6,9 @@
 - Project determines:  
   - How gene boundaries were inferred from raw DNA sequences
   - Automatic identification of gene boundaries will reduce the need for time consuming manual annotation by researchers.
-
+- Limitations:
+  - Maybe focus on a specific taxonomy/organism
+  - Maybe just focus on finding exon/intron splicing site or just one/two topic
+  - Maybe think of another similar project on identification of repeats in a DNA sequence through coding.
 
 
