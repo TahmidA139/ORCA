@@ -1,7 +1,23 @@
-At the very top of the file, include a docstring explaining:
+#At the very top of the file, include a docstring explaining:
+#What this file/module is responsible for
+#How it fits into the overall project
+#What kind of data it receives and/or produces (conceptually)
+"""
+orf_finder.py
 
-What this file/module is responsible for
+Identification of open reading frames (ORFs) in nucleotide sequences.
 
-How it fits into the overall project
+This module provides functions to scan DNA sequences and identify
+open reading frames based on start and stop codons. It supports
+searching across reading frames and returning ORF coordinates,
+lengths, and sequences for downstream analysis.
 
-What kind of data it receives and/or produces (conceptually)
+Typical use cases include gene prediction, sequence annotation,
+and exploratory analysis of genomic or transcriptomic data.
+"""
+"""
+ORF analysis utilities.
+
+Functions for filtering, summarizing, and interpreting ORF data.
+Also, checks similarity score in DNA reading frames
+"""
