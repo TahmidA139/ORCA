@@ -1,8 +1,8 @@
-# ORF Analysis Pipeline
-A Python program that detects Open Reading Frames (ORFs) in DNA sequences, analyzes repeated or similar ORFs, and produces summary statistics.
+# Title
+Identifying Repeating Genes in a DNA Sequence Using Open Reading Frames (ORFs).
 
 ## Objective 
-This project exists to automate ORF detection and analysis in DNA sequences. It helps researchers identify potential protein-coding regions, repeated genes, and conserved sequences efficiently, while generating other ORF statistics for further study.
+The project will develop a program that automate ORF detection and analysis in DNA sequences. It helps researchers identify potential protein-coding regions, repeated genes, and conserved sequences efficiently, while generating other ORF statistics for further study.
 
 ### Files and Descriptions
 * main.py
