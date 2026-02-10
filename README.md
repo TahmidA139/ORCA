@@ -36,10 +36,6 @@ git clone https://github.com/TahmidA139/Project-Programming-2-Group-6.git
 This project is licensed under the GNU GPL v2.1. Chosen for open collaboration, ease of edits, and public use.
 
 # Authors:
-Tahmid Anwar
-- Email: tanwar@charlotte.edu
-- Student ID: 801501080
-
 Amanda Yaworsky
 - Student ID:801489950 
 - Email: ayaworsk@charlotte.edu
@@ -47,6 +43,10 @@ Amanda Yaworsky
 Erin Nicole Decocker
 - Student ID:801442694
 - Email: edecocke@charlotte.edu
+
+Tahmid Anwar
+- Email: tanwar@charlotte.edu
+- Student ID: 801501080
 
 ## Project-Programming-2-Group-6
 Github Repo Link: https://github.com/TahmidA139/Project-Programming-2-Group-6.git
