@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 """
+Input_Validation.py
 Purpose:
     This module is responsible for obtaining a DNA sequence from NCBI and preparing it for downstream ORF detection.
 Role in Project:
