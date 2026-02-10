@@ -2,17 +2,57 @@
 
 """
 Purpose:
-    Downloads a FASTA DNA sequence from NCBI and prepares it for ORF detection.
-
+    This module is responsible for obtaining a DNA sequence from NCBI and preparing it for downstream ORF detection.
+Role in Project:
+    It serves as the data acquisition and preprocessing step in the ORF analysis pipeline.
 Input:
-    NCBI nucleotide accession number (provided by the user)
-
+    An NCBI nucleotide accession number provided by the user.
 Output:
-  A cleaned DNA sequence file in FASTA format
-
-High-level steps:
-    1. Prompt the user for an NCBI accession number.
-    2. Download the FASTA sequence from NCBI.
-    4. Validate that the sequence contains only valid DNA bases.
-    5. Write the cleaned sequence to an output file.
+    A validated and cleaned DNA sequence written to a FASTA file.
 """
+
+def fetch_fasta_from_ncbi(accession):
+    """
+    Objective:
+        Download a DNA sequence in FASTA format from NCBI.
+    Input:
+        accession (str): NCBI nucleotide accession number.
+    Output:
+        sequence (str): Raw DNA sequence retrieved from NCBI.
+    High-Level Steps:
+        - Query NCBI using the accession number
+        - Retrieve FASTA record
+        - Extract DNA sequence
+    """
+    pass
+
+
+def validate_dna_sequence(sequence):
+    """
+    Objective:
+        Verify that the DNA sequence contains only valid nucleotides.
+    Input:
+        sequence (str): DNA sequence string.
+    Output:
+        is_valid (bool): Indicates whether the sequence is valid.
+    High-Level Steps:
+        - Check characters against valid bases
+        - Flag invalid characters if present
+    """
+    pass
+
+
+def write_clean_fasta(sequence, output_path):
+    """
+    Objective:
+        Write a cleaned DNA sequence to a FASTA file.
+    Input:
+        sequence (str): Validated DNA sequence.
+        output_path (str): Path to output FASTA file.
+    Output:
+        FASTA file containing the cleaned DNA sequence.
+    High-Level Steps:
+        - Format sequence as FASTA
+        - Write to output file
+    """
+    pass
