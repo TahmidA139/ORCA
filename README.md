@@ -14,11 +14,16 @@ The workflow:
 * Generate summary statistics, including total ORFs, repeated ORFs, and the longest ORF.
 
 ## Files and Descriptions
-* main.py – Main driver for the ORF analysis pipeline. Holds main function which calls other modules and displays results.
-* input_validate.py – Fetches DNA sequences from NCBI, validates, and writes cleaned FASTA files.
-* orf_finder.py – Detects ORFs across reading frames and parses sequences.
-* orf_analysis.py – Finds repeated ORFs and calculates pairwise similarity scores.
-* Statistics_summary.py – Generates summary statistics (total ORFs, repeated, longest) and writes to a file.
+* main.py
+ – Main driver for the ORF analysis pipeline. Holds main function which calls other modules and displays results.
+* input_validate.py
+– Fetches DNA sequences from NCBI, validates, and writes cleaned FASTA files.
+* orf_finder.py
+– Detects ORFs across reading frames and parses sequences.
+* orf_analysis.py
+– Finds repeated ORFs and calculates pairwise similarity scores.
+* Statistics_summary.py
+– Generates summary statistics (total ORFs, repeated, longest) and writes to a file.
 
 # Installation Instructions
 1. Clone the repository:
