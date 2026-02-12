@@ -14,7 +14,7 @@ Output:
 def find_orfs(dna sequence):
     """
     Objective:
-        Identify ORFs with identical sequences.
+        Identify ORFs with identical sequences. ##(TO identify the start and stop condons of a sequnce stop codons -UAA, UAG, and UGA) (Start Codon AUG)
     Input:
         Cleaned DNA sequence from input_validate.py
     Output:
