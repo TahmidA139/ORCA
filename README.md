@@ -21,17 +21,18 @@ The project will develop a program that automate ORF detection and analysis in D
       * Input_validate.py: (Tahmid Anwar)
            - fetch_fasta_from_ncbi.py
            - validate_DNA_sequence.py
+             
       * ORF_finder_libarry: (Erin Nicole Decocker)
-           - _ _init_ _.py 
+           - init.py 
            - Find_orfs.py 
            - Orfs_metadata.py
 
-    * Statistics_summary_libarary: (Who ever gets done the soonest)
-           - _ _init_ _.py 
+      * Statistics_summary_libarary: (Who ever gets done the soonest)
+           - init.py 
            - Calculate_orf_stats.py
            - Write_stats_to_file.py
 
-    * orf_analysis_library.py: (Amanda Yaworsky)
+      * Orf_analysis_library.py: (Amanda Yaworsky)
            - find_repeated_orfs.py
            - Calculate_similarity_scores.py 
 
