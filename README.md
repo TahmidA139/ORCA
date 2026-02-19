@@ -21,7 +21,13 @@ The project will develop a program that automate ORF detection and analysis in D
       * ORF_finder_libarry:
             _ _init_ _.py 
             Find_orfs.py 
-            Orfs_metadata.py 
+            Orfs_metadata.py
+
+    * Statistics_summary_libarary:
+           _ _init_ _.py 
+           Calculate_orf_stats.py
+           Write_stats_to_file.py 
+
 
 # Installation Instructions
 1. Clone the repository:
