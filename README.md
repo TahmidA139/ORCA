@@ -26,7 +26,12 @@ The project will develop a program that automate ORF detection and analysis in D
     * Statistics_summary_libarary:
            * _ _init_ _.py 
            * Calculate_orf_stats.py
-           * Write_stats_to_file.py 
+           * Write_stats_to_file.py
+
+    * orf_analysis_library.py 
+           * find_repeated_orfs.py
+           * Calculate_similarity_scores.py 
+
 
 
 # Installation Instructions
