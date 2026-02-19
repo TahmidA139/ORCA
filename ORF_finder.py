@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """
+(Nicoles portion)
 ORF_finder.py
 Purpose:
     Detect all open reading frames (ORFs) within a DNA sequences across multiple reading frames and their corresponding metadata.
