@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """
+(Everyone in the group will participate in this portion)
 main.py
 Purpose:
     This script serves as the main driver for the ORF analysis pipeline.
