@@ -45,10 +45,8 @@ Features:
 
 from typing import Dict
 
-
 START_CODONS = {"ATG", "GTG", "TTG"}
 STOP_CODONS = {"TAA", "TAG", "TGA"}
-
 
 def _scan_frame(dna_sequence: str, frame: int):
     """
@@ -59,7 +57,7 @@ def _scan_frame(dna_sequence: str, frame: int):
 
     while i <= seq_len - 3:
         codon = dna_sequence[i:i + 3]
-
+        
         if codon in START_CODONS:
             start_index = i
             start_type = codon
@@ -91,7 +89,6 @@ def _scan_frame(dna_sequence: str, frame: int):
 
         i += 3
 
-
 def find_orfs(dna_sequence: str) -> Dict:
     """
     Detect ORFs and organize them by start codon type
@@ -109,13 +106,7 @@ def find_orfs(dna_sequence: str) -> Dict:
     incomplete_gtg = {}
     incomplete_ttg = {}
 
-    counters = {
-        "ATG": 1,
-        "GTG": 1,
-        "TTG": 1,
-        "I_ATG": 1,
-        "I_GTG": 1,
-        "I_TTG": 1,}
+    counters = {"ATG": 1,"GTG": 1,"TTG": 1,"I_ATG": 1,"I_GTG": 1,"I_TTG": 1,}
 
     for frame in range(3):
         for orf in _scan_frame(dna_sequence, frame):
@@ -136,9 +127,8 @@ def find_orfs(dna_sequence: str) -> Dict:
                     "start": start,
                     "end": end,
                     "length": length,
-                    "sequence": sequence
-                }
-
+                    "sequence": sequence}
+                
                 if start_type == "ATG":
                     atg_orfs[label] = data
                 elif start_type == "GTG":
@@ -156,8 +146,7 @@ def find_orfs(dna_sequence: str) -> Dict:
                     "end": None,
                     "length": None,
                     "sequence": None,
-                    "note": "No in-frame stop codon detected"
-                }
+                    "note": "No in-frame stop codon detected"}
 
                 if start_type == "ATG":
                     incomplete_atg[label] = data
@@ -172,5 +161,4 @@ def find_orfs(dna_sequence: str) -> Dict:
         "TTG_complete": ttg_orfs,
         "ATG_incomplete": incomplete_atg,
         "GTG_incomplete": incomplete_gtg,
-        "TTG_incomplete": incomplete_ttg,
-    }
+        "TTG_incomplete": incomplete_ttg,}
