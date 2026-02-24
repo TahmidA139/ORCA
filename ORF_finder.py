@@ -1,50 +1,100 @@
 #!/usr/bin/env python3
 """
-(Nicoles portion)
 ORF_finder.py
-Purpose:
-    Detect all open reading frames (ORFs) within a DNA sequences across multiple reading frames and their corresponding metadata.
-Role in Project:
-    Converts raw DNA sequences into candidate protein-coding regions.
-Input:
-    DNA sequence strings.
-Output:
-    Collection of ORFs with positions and sequences
+
+Overall Purpose:
+    Detect all open reading frames (ORFs) within a DNA sequence
+    across multiple reading frames and collect metadata.
 """
 
-def find_orfs(dna sequence):
-    """
-    Objective:
-        Identify ORFs with identical sequences. ##(TO identify the start and stop condons of a sequnce stop codons -UAA, UAG, and UGA) (Start Codon AUG)
-    Input:
-        Cleaned DNA sequence from input_validate.py
-    Output:
-        A list of dictionaries where each dictionary contains:
-            - frame: reading frame numer (0,1,2)
-            - start: starting index of the ORF
-            - end: ending index of the ORF
-            
-    High-Level Steps:
-        - Define start and stop codons
-        - Iterate through all three reading frames
-        - Scan the sequence codon by codon
-        - Detect start codon
-        - Continue iterating for the whole sequence and find ORFs
-        - Return all detected ORFs list
-        
-    """
-    pass
+from typing import List, Dict
 
-def orfs_metadata(dna_sequence):
+START_CODON = "ATG"
+STOP_CODONS = {"TAA", "TAG", "TGA"}
+
+def _scan_frame(dna_sequence: str, frame: int) -> List[Dict]:
     """
-    Objective:
-         Identify the genomic positions and associated metadata for each detected ORF in the DNA sequence.
-    Input:
-       Cleaned DNA sequence from input_validate.py.
-    Output:
-        ORF list with their corresponding metadata
-    High-Level Steps:
-        - For each ORF in the ORF list, find ORF sequence and location
-        - Output ORF sequence and location for each corresponding ORF.
+    Scan a single reading frame for ORFs.
+
+    Returns:
+        List of dictionaries with frame, start, end.
     """
-    pass
+    orfs = []
+    seq_len = len(dna_sequence)
+
+    i = frame
+    while i <= seq_len - 3:
+        codon = dna_sequence[i:i + 3]
+
+        if codon == START_CODON:
+            start_index = i
+            j = i + 3
+
+            while j <= seq_len - 3:
+                stop_codon = dna_sequence[j:j + 3]
+
+                if stop_codon in STOP_CODONS:
+                    orfs.append({
+                        "frame": frame,
+                        "start": start_index,
+                        "end": j + 3
+                    })
+                    break
+
+                j += 3
+
+        i += 3
+
+    return orfs
+
+
+def find_orfs(dna_sequence: str) -> List[Dict]:
+    """
+    Identify ORFs across all three reading frames.
+
+    Returns:
+        List of dictionaries containing:
+            - frame
+            - start
+            - end
+    """
+    dna_sequence = dna_sequence.upper()
+    all_orfs = []
+
+    for frame in range(3):
+        frame_orfs = _scan_frame(dna_sequence, frame)
+        all_orfs.extend(frame_orfs)
+
+    return all_orfs
+
+
+def orfs_metadata(dna_sequence: str) -> List[Dict]:
+    """
+    Add sequence and length metadata to each detected ORF.
+
+    Returns:
+        List of dictionaries containing:
+            - frame
+            - start
+            - end
+            - sequence
+            - length
+    """
+    dna_sequence = dna_sequence.upper()
+    orfs = find_orfs(dna_sequence)
+
+    metadata = []
+
+    for orf in orfs:
+        start = orf["start"]
+        end = orf["end"]
+        sequence = dna_sequence[start:end]
+
+        metadata.append({
+            "frame": orf["frame"],
+            "start": start,
+            "end": end,
+            "sequence": sequence,
+            "length": len(sequence)})
+
+    return metadata
