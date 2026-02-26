@@ -4,6 +4,9 @@
 ## Output:
   - Raw DNA sequence string retrieved from NCBI or None if the fetch fails.
 ## Code:
+from Bio import Entrez, SeqIO
+from Bio.SeqRecord import SeqRecord
+from Bio.Seq import Seq
     
   try:
         print(f"[INFO] Querying NCBI for accession: '{accession}' ...")
@@ -32,3 +35,6 @@
 ## How it works:
  - Accession number is inputted in the function and through the code the function retrives the fasta file from the accession number, removes the header and returns the raw sequence string as output, 
   which will be used by the function "ORF_finder.py".
+
+##Example 
+
