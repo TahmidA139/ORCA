@@ -7,8 +7,7 @@ Tahmid's portion:
 input_validate.py
 -----------------
 Fetches a DNA sequence from NCBI in FASTA format, validates it (removing
-any invalid characters), and writes a cleaned FASTA file for downstream
-modules (ORF_finder.py, ORF_analysis.py, statistics_summary.py).
+any invalid characters), and the cleaned DNA sequence will be passed directly to ORF_finder.py through main.py
 
 Dependency:
     pip install biopython
@@ -64,7 +63,7 @@ def fetch_fasta_from_ncbi(accession: str, db: str = "nucleotide") -> str | None:
         sequence = str(record.seq)
         print(f"[INFO] Fetched '{record.id}' — {len(sequence)} bp")
         return sequence
-    # record.seq is a Biopython Seq object (not a plain Python string). We wrap it in str() to convert it to a regular string, which is easier to work with.
+    # record.seq is a Biopython Seq object (not a plain Python string). We wrap it in str() to convert it to a regular string, which takes only the sequence.
 
     except Exception as e:
         print(f"[ERROR] Could not fetch sequence from NCBI: {e}")
