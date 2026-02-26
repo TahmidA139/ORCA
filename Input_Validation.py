@@ -17,8 +17,6 @@ Dependency:
 from Bio import Entrez, SeqIO
 from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
-import re
-import os
 
 # NCBI requires a valid email address for all Entrez queries
 Entrez.email = "your_email@example.com"   # replace before running
