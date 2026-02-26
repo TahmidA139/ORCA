@@ -36,5 +36,7 @@ from Bio.Seq import Seq
  - Accession number is inputted in the function and through the code the function retrives the fasta file from the accession number, removes the header and returns the raw sequence string as output, 
   which will be used by the function "ORF_finder.py".
 
-##Example 
+## Example:
+Using the accession number: 'NM_001301717' in the function
+
 
