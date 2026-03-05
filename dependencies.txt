@@ -19,6 +19,7 @@ regex=2023.12.25        # used in ORF_finder.py and ORF_analysis.py for advanced
 # --- Data Handling & Statistical Computing & Output ---
 pandas=2.2.1            # Tabular storage of ORF results and statistics (statistics_summary.py)
                         # Numerical operations for similarity score calculations (ORF_analysis.py)
+                        # For data analysis (ORF.analysis.py)
 
 # --- Reporting & Output ---
 matplotlib=3.8.3        # Plotting ORF distribution charts (statistics_summary.py) (For visual representation better for users)
