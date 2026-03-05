@@ -1,13 +1,70 @@
 # ============================================================
 # environment.yml
-# Anaconda environment configuration for the ORF project.
-#
-# To create the environment from this file, run:
-#   conda env create -f environment.yml
-#
-# To activate it, run:
-#   conda activate orf_project_env
+# Project: Identifying Repeating Genes in a DNA Sequence
+#          Using Open Reading Frames (ORFs)
 # ============================================================
+#
+# WHAT IS THIS FILE?
+#   This file defines an Anaconda environment called
+#   'orf_project_env' with all packages and versions needed
+#   to run this project. It ensures every team member runs
+#   the project with identical dependencies.
+#
+# ============================================================
+# USAGE INSTRUCTIONS
+# ============================================================
+#
+# ---- FIRST TIME SETUP (do this once) ----------------------
+#
+#   Step 1: Install Anaconda or Miniconda if not installed.
+#           Download from: https://www.anaconda.com/download
+#           For Ubuntu/WSL:
+#             wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+#             bash Miniconda3-latest-Linux-x86_64.sh
+#
+#   Step 2: Create the environment from this file:
+#             conda env create -f environment.yml
+#
+#   Step 3: Activate the environment:
+#             conda activate orf_project_env
+#
+#   Step 4: Verify all packages installed correctly:
+#             python -c "from Bio import Entrez, SeqIO; import numpy, pandas, matplotlib, regex; print('All dependencies OK')"
+#
+#   Step 5: Run the project:
+#             python main.py
+#
+# ---- EVERY TIME YOU WORK ON THE PROJECT -------------------
+#
+#   Activate the environment first:
+#             conda activate orf_project_env
+#
+#   Then run the project:
+#             python main.py
+#
+#   When finished, deactivate:
+#             conda deactivate
+#
+# ---- UPDATING THE ENVIRONMENT -----------------------------
+#
+#   If new packages are added to this file later:
+#             conda env update -f environment.yml --prune
+#
+# ---- REMOVING THE ENVIRONMENT -----------------------------
+#
+#   If you need to delete and start fresh:
+#             conda env remove -n orf_project_env
+#
+# ---- OTHER USEFUL COMMANDS --------------------------------
+#
+#   List all environments on your system:
+#             conda env list
+#
+#   Export your current environment state to a file:
+#             conda env export > environment.yml
+#
+# ============================================================
+
 
 name: orf_project_env
 
