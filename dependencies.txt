@@ -14,13 +14,11 @@ python=3.10
 biopython=1.83          # For NCBI sequence fetching, FASTA parsing (input_validate.py)
 
 # --- String & Sequence Analysis ---
-regex=2023.12.25        # used in ORF_finder.py and ORF_analysis.py for advanced pattern matching for ORF detection that can also detect overlapping ORFs
+regex=2023.12.25        # used in ORF_finder.py and ORF_analysis.py for advanced pattern matching for ORF detection that can also detect overlapping ORFs       
 
-# --- Numerical & Statistical Computing ---
-numpy=1.26.4            # Numerical operations for similarity score calculations (ORF_analysis.py)
-
-# --- Data Handling & Output ---
+# --- Data Handling & Statistical Computing & Output ---
 pandas=2.2.1            # Tabular storage of ORF results and statistics (statistics_summary.py)
+                        # Numerical operations for similarity score calculations (ORF_analysis.py)
 
 # --- Reporting & Output ---
 matplotlib=3.8.3        # Plotting ORF distribution charts (statistics_summary.py) (For visual representation better for users)
