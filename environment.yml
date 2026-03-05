@@ -34,7 +34,7 @@
 #   Step 5: Run the project:
 #             python main.py
 #
-# ---- EVERY TIME YOU WORK ON THE PROJECT -------------------
+# ---- EVERY TIME WE WORK ON THE PROJECT -------------------
 #
 #   Activate the environment first:
 #             conda activate orf_project_env
@@ -52,7 +52,7 @@
 #
 # ---- REMOVING THE ENVIRONMENT -----------------------------
 #
-#   If you need to delete and start fresh:
+#   If we need to delete and start fresh:
 #             conda env remove -n orf_project_env
 #
 # ---- OTHER USEFUL COMMANDS --------------------------------
