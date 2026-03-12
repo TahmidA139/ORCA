@@ -1,8 +1,14 @@
-# Title
-Identifying Repeating Genes in a DNA Sequence Using Open Reading Frames (ORFs).
+# Identifying Repeating Genes in a DNA Sequence Using Open Reading Frames (ORFs).
+**GitHub:** https://github.com/TahmidA139/Project-Programming-2-Group-6
 
 ## Objective 
 The project will develop a program that automate ORF detection and analysis in DNA sequences. It helps researchers identify potential protein-coding regions, repeated genes, and conserved sequences efficiently, while generating other ORF statistics for further study.
+
+## Features
+- Downloads DNA sequences in FASTA format from NCBI
+- Scans sequences to identify start and stop codons across all reading frames
+- Detects repeated or similar ORF sequences
+- Generates summary statistics: total ORFs, repeated ORFs, and longest ORF
 
 ### Files and Descriptions
 * main.py
@@ -17,25 +23,23 @@ The project will develop a program that automate ORF detection and analysis in D
 – Generates summary statistics (total ORFs, repeated, longest) and writes to a output file.
 
 # Task distribution among members:
-Right now we have 4 python files (not including main.py), that are place holders for the libraries that we are going to make and each python file holds functions that are place holders for possible python scripts that we are going to make. 
-
   - Libraries: 
-      * Input_validate_library/ (Tahmid Anwar)
+      * Input_validate_lib/ (Tahmid Anwar)  — Input validation and FASTA file loading
            - init.py 
            - fetch_fasta_from_ncbi.py
            - validate_DNA_sequence.py
              
-      * ORF_finder_library/ (Erin Nicole Decocker)
+      * ORF_finder_lib/ (Erin Nicole Decocker) — Core ORF detection logic
            - init.py 
            - Find_orfs.py 
            - Orfs_metadata.py
     
-      * Orf_analysis_library/ (Amanda Yaworsky)
+      * analysis_lib/ (Amanda Yaworsky)  — ORF analysis and repeat detection
            - init.py 
            - find_repeated_orfs.py
            - Calculate_similarity_scores.py 
 
-      * Statistics_summary_library/ (Who ever gets done the soonest)
+      * statistics_lib/ (Who ever gets done the soonest) — Summary statistics
            - init.py 
            - Calculate_orf_stats.py
            - Write_stats_to_file.py
