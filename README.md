@@ -1,4 +1,4 @@
-![ORCA Banner](images/orca_banner.png)
+<img src="images/orca_banner.png" alt="ORCA Banner" width="600"/>
 
 # ORCA (ORF Recognition and Classification Analyzer)
 **GitHub:** https://github.com/TahmidA139/Project-Programming-2-Group-6
