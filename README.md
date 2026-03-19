@@ -3,7 +3,6 @@
 </p>
 
 # ORCA (ORF Recognition and Classification Analyzer)
-**GitHub:** https://github.com/TahmidA139/Project-Programming-2-Group-6
 Also open to other names for the project like ORCA (ORF recognigtion and Classification Annotator). let me know what you think. 
 
 ## Objective 
@@ -87,7 +86,7 @@ conda env create -f environment.yml
 5. Activate the Environment
 ```bash
 conda activate Project-Programming-2-Group-6
-
+```
 ### Usage Examples:
 
 ### Command-Line Arguments:
@@ -115,9 +114,6 @@ Erin Nicole Decocker
 Tahmid Anwar
 - Email: tanwar@charlotte.edu
 - Student ID: 801501080
-
-## Project-Programming-2-Group-6
-Github Repo Link: https://github.com/TahmidA139/Project-Programming-2-Group-6.git
 
 ## 20260226_input_validate.py_function_execution
 We created a function called fetch_fasta_from_ncbi which will output raw DNA sequence string from the NCBI nucleotide accession number. Using try/except and inside it using Entrez.efetch, using the accession number, we collect the fasta file of that accession number. Then using SeqIO.read(), we take only the raw sequence as string ignoring the headers of the fasta file. The cleaned DNA sequence will be passed directly to ORF_finder.py through main.py
