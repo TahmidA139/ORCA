@@ -115,15 +115,15 @@ CTCTAGATGAGTCAGTGGAGGGCGGGTGGAGCGTTGAACCGTGAAGAGTGTGGTTGGGCGTAAACGTGGACTTAAACTCA
 This project is licensed under the GNU GPL v2.1. Chosen for open collaboration, ease of edits, and public use.
 
 # Authors:
-Amanda Yaworsky
+**Amanda Yaworsky**
 - Student ID:801489950 
 - Email: ayaworsk@charlotte.edu
 
-Erin Nicole Decocker
+**Erin Nicole Decocker**
 - Student ID:801442694
 - Email: edecocke@charlotte.edu
 
-Tahmid Anwar
+**Tahmid Anwar**
 - Email: tanwar@charlotte.edu
 - Student ID: 801501080
 
