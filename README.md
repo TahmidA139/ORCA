@@ -30,7 +30,7 @@ The project will develop a program that automate ORF detection and analysis in D
   - python=3.10
   - numpy
   - Biopython
-  - 
+    
 # Task distribution among members:
 ```bash
 Project-Programming-2-Group-6/
