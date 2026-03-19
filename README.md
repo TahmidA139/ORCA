@@ -73,7 +73,7 @@ Project-Programming-2-Group-6/
 ```bash
 git clone https://github.com/TahmidA139/ORCA.git
 ```
-2. Go into your project folder:
+2. Go into the project folder:
 ```bash
 cd ORCA
 ```
