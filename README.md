@@ -96,7 +96,7 @@ conda activate Project-Programming-2-Group-6
 We created a function called fetch_fasta_from_ncbi which will output raw DNA sequence string from the NCBI nucleotide accession number. Using try/except and inside it using Entrez.efetch, using the accession number, we collect the fasta file of that accession number. Then using SeqIO.read(), we take only the raw sequence as string ignoring the headers of the fasta file. The cleaned DNA sequence will be passed directly to ORF_finder.py through main.py
 Calling the function with the accession number: 'NM_001301717',
 ```bash
-python src/main.py -o stats_summary.out
+python src/main.py - accession NM_001301717 -o stats_summary.out
 ```
 
 the function outputs the sequence: 
