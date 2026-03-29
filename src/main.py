@@ -29,8 +29,8 @@ Output:
 from pprint import pprint
 import argparse
 
-from Libraries.Input_validate_lib.input_validate import run as validate_run
-from Libraries.ORF_finder_lib.Find_orfs import find_orfs
+from Input_validate_lib.input_validate import run as validate_run
+from ORF_finder_lib.Find_orfs import find_orfs
 
 
 def main():
