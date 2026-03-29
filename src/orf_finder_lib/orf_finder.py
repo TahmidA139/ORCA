@@ -4,11 +4,13 @@
 ORF_finder.py
 
 Purpose:
-    Detect open reading frames (ORFs) in a DNA sequence across all three
-    forward reading frames using NumPy vectorization.
+    Detect open reading frames (ORFs) in a DNA sequence across all six
+    reading frames (three forward, three reverse complement) using NumPy
+    vectorization.
 
 Features:
-    - NumPy-accelerated codon extraction via stride tricks
+    - NumPy-accelerated codon extraction
+    - Full six-frame translation (+1, +2, +3, -1, -2, -3)
     - Detects nested ORFs (every start codon is evaluated independently)
     - Separates ORFs by completeness (complete / incomplete)
     - Separates ORFs by start codon type (ATG canonical; GTG, TTG non-canonical)
@@ -19,8 +21,8 @@ Output dictionary schema
 ------------------------
 {
     "complete": {
-        "canonical": {          # ATG starts
-            "ORF1": {frame, start, end, length_nt, start_codon, status, is_nested},
+        "canonical": {
+            "ORF1": {strand, frame, start, end, length_nt, start_codon, status, is_nested},
             ...
         },
         "noncanonical": {
@@ -40,6 +42,11 @@ CSV status values
     "incomplete"           - no stop codon found, not nested
     "complete|nested"      - complete ORF whose start falls inside another ORF
     "incomplete|nested"    - incomplete ORF whose start falls inside another ORF
+
+CSV strand values
+-----------------
+    "+"  - forward strand
+    "-"  - reverse complement strand
 """
 
 from __future__ import annotations
@@ -57,6 +64,13 @@ STOP_CODONS:          List[str] = ["TAA", "TAG", "TGA"]
 CANONICAL_START:      str       = "ATG"
 NONCANONICAL_STARTS:  List[str] = ["GTG", "TTG"]
 
+# Complement lookup for reverse complement generation
+_COMPLEMENT: Dict[str, str] = {
+    "A": "T", "T": "A",
+    "G": "C", "C": "G",
+    "N": "N",  # tolerate ambiguous bases
+}
+
 # Default parameter values (mirrors argparse defaults in main.py)
 DEFAULT_START_CODONS:  List[str] = ["ATG"]
 DEFAULT_MIN_LENGTH:    int       = 30
@@ -66,6 +80,30 @@ DEFAULT_IGNORE_NESTED: bool      = False
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
+
+def _reverse_complement(dna_sequence: str) -> str:
+    """
+    Return the reverse complement of a DNA sequence using NumPy.
+
+    Steps:
+        1. Convert the string to a NumPy character array
+        2. Vectorized complement lookup via np.vectorize
+        3. Reverse the array and join back to a string
+
+    Parameters
+    ----------
+    dna_sequence : str
+        Upper-case DNA string.
+
+    Returns
+    -------
+    str
+        Reverse complement sequence.
+    """
+    char_arr   = np.array(list(dna_sequence), dtype="<U1")
+    complement = np.vectorize(_COMPLEMENT.get)(char_arr, char_arr)
+    return "".join(complement[::-1])
+
 
 def _sequence_to_codon_array(dna_sequence: str, frame: int) -> np.ndarray:
     """
@@ -102,9 +140,40 @@ def _sequence_to_codon_array(dna_sequence: str, frame: int) -> np.ndarray:
 def _codon_index_to_nt(frame: int, codon_index: int) -> int:
     """
     Convert a codon index (within a frame-sliced array) back to the
-    nucleotide index in the original full sequence.
+    nucleotide index in the sequence that was scanned.
     """
     return frame + codon_index * 3
+
+
+def _rc_coords_to_forward(
+    rc_start: int, rc_end: Optional[int], seq_len: int
+) -> Tuple[int, Optional[int]]:
+    """
+    Convert start/end coordinates from the reverse complement sequence back
+    to the equivalent positions on the original forward sequence.
+
+    On the forward sequence, the ORF runs right-to-left, so:
+        fwd_end   = seq_len - rc_start
+        fwd_start = seq_len - rc_end
+
+    Parameters
+    ----------
+    rc_start : int
+        0-based start (inclusive) in the reverse complement sequence.
+    rc_end : int or None
+        0-based end (exclusive) in the reverse complement sequence.
+        None if the ORF is incomplete (no stop codon found).
+    seq_len : int
+        Length of the original forward sequence.
+
+    Returns
+    -------
+    fwd_start : int
+    fwd_end   : int or None
+    """
+    fwd_end   = seq_len - rc_start
+    fwd_start = (seq_len - rc_end) if rc_end is not None else None
+    return fwd_start, fwd_end
 
 
 def _find_stop_codon_index(
@@ -131,12 +200,12 @@ def _mark_nested(all_orfs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     Add an 'is_nested' boolean field to every ORF record in-place.
 
     An ORF is nested if its start position falls strictly inside another
-    ORF's start-end range within the same reading frame.
+    ORF's start-end range on the same strand and reading frame.
 
     Parameters
     ----------
     all_orfs : list of dict
-        Raw ORF records (must have 'frame', 'start', 'end' keys).
+        Raw ORF records (must have 'strand', 'frame', 'start', 'end' keys).
 
     Returns
     -------
@@ -146,6 +215,9 @@ def _mark_nested(all_orfs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         is_nested = False
         for j, other in enumerate(all_orfs):
             if i == j:
+                continue
+            # Must be same strand AND same frame to be nested
+            if orf["strand"] != other["strand"]:
                 continue
             if orf["frame"] != other["frame"]:
                 continue
@@ -167,6 +239,8 @@ def scan_frame(
     frame:        int,
     start_codons: List[str],
     min_length:   int,
+    strand:       str,
+    seq_len:      int,
 ) -> List[Dict[str, Any]]:
     """
     Scan a DNA sequence in a single reading frame and return all ORFs,
@@ -175,25 +249,30 @@ def scan_frame(
     Parameters
     ----------
     dna_sequence : str
-        Upper-case DNA string.
+        Upper-case DNA string to scan. For the reverse strand this should
+        already be the reverse complement.
     frame : int
         Reading frame offset (0, 1, or 2).
     start_codons : list of str
         Only ORFs beginning with one of these codons are reported.
     min_length : int
-        Minimum ORF length in nucleotides. ORFs shorter than this are dropped.
+        Minimum ORF length in nucleotides.
+    strand : str
+        "+" for forward, "-" for reverse complement.
+    seq_len : int
+        Length of the original forward sequence (used for coordinate
+        conversion on the reverse strand).
 
     Returns
     -------
     list of dict
-        Keys: frame, start, end, length_nt, start_codon, status
+        Keys: strand, frame, start, end, length_nt, start_codon, status
         ('is_nested' is added later by _mark_nested)
     """
     codons = _sequence_to_codon_array(dna_sequence, frame)
     if codons.size == 0:
         return []
 
-    # Build start mask using only the caller-requested start codons
     start_mask = np.zeros(len(codons), dtype=bool)
     for sc in start_codons:
         start_mask |= codons == sc
@@ -203,25 +282,34 @@ def scan_frame(
     results: List[Dict[str, Any]] = []
 
     for ci in start_indices:
-        start_nt    = _codon_index_to_nt(frame, int(ci))
+        rc_start_nt = _codon_index_to_nt(frame, int(ci))
         start_codon = str(codons[ci])
         stop_ci     = _find_stop_codon_index(codons, int(ci))
 
         if stop_ci is not None:
-            end_nt    = _codon_index_to_nt(frame, stop_ci) + 3
-            length_nt = end_nt - start_nt
+            rc_end_nt = _codon_index_to_nt(frame, stop_ci) + 3
+            length_nt = rc_end_nt - rc_start_nt
             status    = "complete"
         else:
-            end_nt    = None
-            length_nt = len(dna_sequence) - start_nt
+            rc_end_nt = None
+            length_nt = len(dna_sequence) - rc_start_nt
             status    = "incomplete"
 
-        # Apply minimum length filter
         if length_nt < min_length:
             continue
 
+        # Convert reverse complement coordinates to forward sequence coords
+        if strand == "-":
+            start_nt, end_nt = _rc_coords_to_forward(
+                rc_start_nt, rc_end_nt, seq_len
+            )
+        else:
+            start_nt = rc_start_nt
+            end_nt   = rc_end_nt
+
         results.append(
             {
+                "strand":      strand,
                 "frame":       frame,
                 "start":       start_nt,
                 "end":         end_nt,
@@ -245,40 +333,44 @@ def find_orfs(
     ignore_nested: bool      = DEFAULT_IGNORE_NESTED,
 ) -> Tuple[Dict[str, Any], List[Dict[str, Any]]]:
     """
-    Find all ORFs in all three forward reading frames of a DNA sequence.
+    Find all ORFs in all six reading frames of a DNA sequence.
 
     Parameters
     ----------
     dna_sequence : str
-        Upper-case DNA string (A, T, G, C). Non-standard characters are
-        tolerated but will not match any start/stop codon.
+        Upper-case DNA string (A, T, G, C).
     start_codons : list of str, optional
         Start codons to search for. Default: ["ATG"].
     min_length : int, optional
         Minimum ORF length in nucleotides. Default: 30.
     ignore_nested : bool, optional
-        If True, ORFs whose start falls inside another ORF in the same
-        frame are removed from the output. Default: False.
+        If True, nested ORFs are removed from the output. Default: False.
 
     Returns
     -------
     nested_dict : dict
         Hierarchical dictionary organised as shown in the module docstring.
     flat_list : list of dict
-        Flat list of all ORF records. The 'status' field encodes both
-        completeness and nesting:
-            "complete", "incomplete",
-            "complete|nested", "incomplete|nested"
+        Flat list of all ORF records with 'strand', 'status', and 'is_nested'
+        fields included.
     """
     dna_sequence = dna_sequence.upper().strip()
+    seq_len      = len(dna_sequence)
+    rev_comp     = _reverse_complement(dna_sequence)
 
     # ------------------------------------------------------------------
-    # 1. Scan all three frames with the user-supplied filters
+    # 1. Scan all six frames
     # ------------------------------------------------------------------
     all_orfs: List[Dict[str, Any]] = []
+
     for frame in range(3):
+        # Forward strand (+1, +2, +3)
         all_orfs.extend(
-            scan_frame(dna_sequence, frame, start_codons, min_length)
+            scan_frame(dna_sequence, frame, start_codons, min_length, "+", seq_len)
+        )
+        # Reverse complement strand (-1, -2, -3)
+        all_orfs.extend(
+            scan_frame(rev_comp, frame, start_codons, min_length, "-", seq_len)
         )
 
     # ------------------------------------------------------------------
@@ -293,9 +385,7 @@ def find_orfs(
         all_orfs = [o for o in all_orfs if not o["is_nested"]]
 
     # ------------------------------------------------------------------
-    # 4. Encode nesting into the status field for the CSV
-    #    "complete"          -> "complete"
-    #    "complete" + nested -> "complete|nested"
+    # 4. Encode nesting into the status field
     # ------------------------------------------------------------------
     for orf in all_orfs:
         if orf["is_nested"]:
@@ -326,7 +416,6 @@ def find_orfs(
 
     for orf in all_orfs:
         sc          = orf["start_codon"]
-        # Use only the base status (strip |nested) for routing into the dict
         base_status = orf["status"].split("|")[0]
 
         if sc == CANONICAL_START:
@@ -364,8 +453,8 @@ def find_orfs(
 
 CSV_FIELDNAMES: List[str] = [
     "orf_id",
-    "status",
-    "is_nested",
+    "status",       # "complete", "incomplete", "complete|nested", "incomplete|nested"
+    "strand",       # "+" or "-"
     "start_codon",
     "frame",
     "start",
