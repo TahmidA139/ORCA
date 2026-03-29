@@ -41,15 +41,13 @@ ORCA/
 │   ├── __init__.py
 │   ├── main.py
 │   │
-│   ├── Input_validate_lib/        # Tahmid Anwar
+│   ├── input_lib/        # Tahmid Anwar
 │   │   ├── __init__.py
-│   │   ├── fetch_fasta_from_ncbi.py
-│   │   └── validate_DNA_sequence.py
+│   │   └── input_validate.py
 │   │
-│   ├── ORF_finder_lib/            # Erin Nicole Decocker
+│   ├── orf_finder_lib/            # Erin Nicole Decocker
 │   │   ├── __init__.py
-│   │   ├── Find_orfs.py
-│   │   └── Orfs_metadata.py
+│   │   ├── orf_finder.py
 │   │
 │   ├── analysis_lib/              # Amanda Yaworsky
 │   │   ├── __init__.py
