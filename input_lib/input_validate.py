@@ -140,62 +140,34 @@ def write_cleaned_fasta(
 
 def run(
     accession: str,
+    email: str,
     output_fasta: str = "output/cleaned_sequence.fasta",
 ) -> tuple[str, str] | tuple[None, None]:
     ## Input:
     ##   - accession    (str): NCBI accession number.
+    ##   - email        (str): User email required by NCBI Entrez.
     ##   - output_fasta (str): Path for the cleaned FASTA output file.
     ## Output:
     ##   - (accession, clean_seq): tuple on success, (None, None) on failure.
+
+    # NCBI requires a valid email address for all Entrez queries.
+    # This is not a login — NCBI uses it only to contact you if your
+    # script sends too many requests.
+    Entrez.email = email
 
     # Step 1 — fetch raw sequence from NCBI
     raw_sequence = fetch_fasta_from_ncbi(accession)
     if raw_sequence is None:
         return None, None
-    
+
     # Step 2 — validate and clean the sequence
     is_valid, clean_seq = validate_dna_sequence(raw_sequence)
     if not is_valid:
         print("[ERROR] Sequence failed validation. Aborting pipeline.")
         return None, None
-    
+
     # Step 3 — write cleaned FASTA to disk
     write_cleaned_fasta(clean_seq, accession, output_fasta)
 
     # Step 4 — return clean sequence for ORF_finder.py
     return accession, clean_seq
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# COMMAND-LINE INTERFACE
-# ─────────────────────────────────────────────────────────────────────────────
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Fetch and validate DNA sequence from NCBI")
-
-    parser.add_argument("--accession", type=str, help="NCBI accession number")
-    parser.add_argument("--email", type=str, help="Email for NCBI Entrez")
-    parser.add_argument("--output", type=str, default="output/cleaned_sequence.fasta",
-                        help="Output FASTA file path")
-
-    args = parser.parse_args()
-
-    # Prompt if not provided
-    accession = args.accession or input("Enter NCBI accession number: ")
-    email = args.email or input("Enter your email (required by NCBI): ")
-
-    # NCBI requires a valid email address for all Entrez queries.
-    # This is not a login — NCBI uses it only to contact you if your
-    # script sends too many requests. Replace with your real email.
-    Entrez.email = email
-
-    accession, result = run(
-        accession=accession,
-        output_fasta=args.output,
-    )
-
-    if result:
-        print(f"\n[RESULT] Clean sequence ready — {len(result)} bp")
-        print(f"         First 60 bp: {result[:60]}")
-    else:
-        print("\n[RESULT] Pipeline failed. Check errors above.")
