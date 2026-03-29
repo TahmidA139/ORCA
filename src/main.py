@@ -104,6 +104,8 @@ def _print_summary(nested: dict, flat_list: list) -> None:
 
 def _write_csv(flat_list: list, output_path: str) -> None:
     """Write the flat ORF list to a CSV file."""
+    import os
+    os.makedirs(os.path.dirname(output_path), exist_ok=True) if os.path.dirname(output_path) else None
     with open(output_path, "w", newline="") as fh:
         writer = csv.DictWriter(fh, fieldnames=CSV_FIELDNAMES)
         writer.writeheader()
