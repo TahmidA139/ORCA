@@ -33,35 +33,33 @@ The project will develop a program that automate ORF detection and analysis in D
     
 # Task distribution among members:
 ```bash
-Project-Programming-2-Group-6/
+ORCA/
 ├── README.md
 ├── LICENSE
 ├── environment.yml
 ├── src/
 │   ├── __init__.py
 │   ├── main.py
-│
-│   ├── Libraries/
 │   │
-│   │   ├── Input_validate_lib/        # Tahmid Anwar
-│   │   │   ├── __init__.py
-│   │   │   ├── fetch_fasta_from_ncbi.py
-│   │   │   └── validate_DNA_sequence.py
+│   ├── Input_validate_lib/        # Tahmid Anwar
+│   │   ├── __init__.py
+│   │   ├── fetch_fasta_from_ncbi.py
+│   │   └── validate_DNA_sequence.py
 │   │
-│   │   ├── ORF_finder_lib/            # Erin Nicole Decocker
-│   │   │   ├── __init__.py
-│   │   │   ├── Find_orfs.py
-│   │   │   └── Orfs_metadata.py
+│   ├── ORF_finder_lib/            # Erin Nicole Decocker
+│   │   ├── __init__.py
+│   │   ├── Find_orfs.py
+│   │   └── Orfs_metadata.py
 │   │
-│   │   ├── analysis_lib/              # Amanda Yaworsky
-│   │   │   ├── __init__.py
-│   │   │   ├── find_repeated_orfs.py
-│   │   │   └── Calculate_similarity_scores.py
+│   ├── analysis_lib/              # Amanda Yaworsky
+│   │   ├── __init__.py
+│   │   ├── find_repeated_orfs.py
+│   │   └── Calculate_similarity_scores.py
 │   │
-│   │   └── statistics_lib/            # TBD
-│   │       ├── __init__.py
-│   │       ├── Calculate_orf_stats.py
-│   │       └── Write_stats_to_file.py
+│   └── statistics_lib/            # TBD
+│       ├── __init__.py
+│       ├── Calculate_orf_stats.py
+│       └── Write_stats_to_file.py
 │
 └── examples/
     ├── example_output.fasta
