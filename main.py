@@ -42,7 +42,7 @@ def main():
     # Prompt if not provided
     accession = args.accession or input("Enter NCBI accession number: ")
     email = args.email or input("Enter your email (required by NCBI): ")
-    acc, clean_seq = validate_run(accession)
+    acc, clean_seq = validate_run(accession, email)
 
     if clean_seq is None:
         print("Pipeline failed.")
