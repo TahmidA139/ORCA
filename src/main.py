@@ -120,14 +120,11 @@ def main() -> None:
     # ------------------------------------------------------------------
     # 2. Fetch and validate the sequence
     # ------------------------------------------------------------------
-    print(f"\n[INFO] Fetching sequence for accession: {accession}")
     acc, clean_seq = validate_run(accession, email)
 
     if clean_seq is None:
         print("[ERROR] Pipeline failed: could not retrieve a valid sequence.")
         sys.exit(1)
-
-    print(f"[INFO] Sequence retrieved — {len(clean_seq):,} nucleotides")
 
     # ------------------------------------------------------------------
     # 3. Run the ORF finder
