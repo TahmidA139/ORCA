@@ -183,11 +183,6 @@ def main() -> None:
         default="orfs.csv",
         help="Path for the output CSV file",
     )
-    parser.add_argument(
-        "--verbose",
-        action="store_true",
-        help="Print the full nested ORF dictionary to stdout",
-    )
 
     args = parser.parse_args()
 
@@ -226,10 +221,6 @@ def main() -> None:
     # 5. Report results
     # ------------------------------------------------------------------
     _print_summary(nested, flat_list)
-
-    if args.verbose:
-        print("[DEBUG] Full nested ORF dictionary:")
-        pprint(nested)
 
     if not flat_list:
         print("[WARNING] No ORFs found. No CSV written.")
