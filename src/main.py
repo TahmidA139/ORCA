@@ -181,7 +181,7 @@ def main() -> None:
     parser.add_argument(
         "--output",
         type=str,
-        default="orfs.csv",
+        default="output/orfs.csv",
         help="Path for the output CSV file",
     )
 
