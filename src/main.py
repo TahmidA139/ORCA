@@ -29,7 +29,6 @@ python main.py --accession NM_001301717 --email you@example.com \
 import argparse
 import csv
 import sys
-from pprint import pprint
 
 from src.input_lib.input_validate import run as validate_run
 from src.ORF_finder import find_orfs, CSV_FIELDNAMES
