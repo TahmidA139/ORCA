@@ -15,23 +15,55 @@ Input:
 Output:
     - orfs.csv  : flat table of every ORF found (one row per ORF)
     - Summary statistics printed to the terminal
+
+Example usage
+-------------
+# All defaults (ATG only, min length 30, nested ORFs included)
+python main.py --accession NM_001301717 --email you@example.com
+
+# All three start codons, minimum 60 nt, ignore nested ORFs
+python main.py --accession NM_001301717 --email you@example.com \
+    --start-codons ATG GTG TTG --min-length 60 --ignore-nested
 """
 
 import argparse
 import csv
-import os
 import sys
 from pprint import pprint
 
 from src.input_lib.input_validate import run as validate_run
-from src.orf_finder_lib.orf_finder import find_orfs, CSV_FIELDNAMES
+from src.ORF_finder import find_orfs, CSV_FIELDNAMES
+
+# Valid start codons the user is allowed to request
+VALID_START_CODONS = {"ATG", "GTG", "TTG"}
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _print_summary(nested: dict) -> None:
+def _find_nested(flat_list: list) -> list:
+    """
+    Return the subset of ORFs that are nested inside another ORF.
+    An ORF is nested if its start position falls within another ORF's
+    start-end range in the same reading frame.
+    """
+    nested_orfs = []
+    for i, orf in enumerate(flat_list):
+        for j, other in enumerate(flat_list):
+            if i == j:
+                continue
+            if orf["frame"] != other["frame"]:
+                continue
+            if other["end"] is None:
+                continue
+            if other["start"] < orf["start"] < other["end"]:
+                nested_orfs.append(orf)
+                break
+    return nested_orfs
+
+
+def _print_summary(nested: dict, flat_list: list) -> None:
     """Print a short summary of ORF counts to stdout."""
     complete   = nested["complete"]
     incomplete = nested["incomplete"]
@@ -60,13 +92,14 @@ def _print_summary(nested: dict) -> None:
     print(f"  Complete   (non-canonical)  : {n_complete_noncanonical}")
     print(f"  Incomplete (non-canonical)  : {n_incomplete_noncanonical}")
 
-    # Per non-canonical start codon breakdown
     for sc in ("GTG", "TTG"):
         nc = len(complete["noncanonical"].get(sc, {}))
         ni = len(incomplete["noncanonical"].get(sc, {}))
         if nc + ni > 0:
             print(f"    {sc} — complete: {nc}, incomplete: {ni}")
 
+    nested_found = _find_nested(flat_list)
+    print(f"  Nested ORFs detected        : {len(nested_found)}")
     print("=================================\n")
 
 
@@ -79,6 +112,22 @@ def _write_csv(flat_list: list, output_path: str) -> None:
     print(f"[INFO] ORF table written to: {output_path}")
 
 
+def _validate_start_codons(requested: list[str]) -> list[str]:
+    """
+    Upper-case and validate the user-supplied start codons.
+    Exits with a helpful message if any unrecognised codon is given.
+    """
+    upper = [c.upper() for c in requested]
+    unknown = [c for c in upper if c not in VALID_START_CODONS]
+    if unknown:
+        print(
+            f"[ERROR] Unrecognised start codon(s): {', '.join(unknown)}\n"
+            f"        Allowed values are: {', '.join(sorted(VALID_START_CODONS))}"
+        )
+        sys.exit(1)
+    return upper
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -86,8 +135,11 @@ def _write_csv(flat_list: list, output_path: str) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="ORF analysis pipeline — fetches a sequence from NCBI "
-                    "and reports all ORFs as a CSV file."
+                    "and reports all ORFs as a CSV file.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
+
+    # --- Sequence retrieval ---
     parser.add_argument(
         "--accession",
         type=str,
@@ -98,17 +150,45 @@ def main() -> None:
         type=str,
         help="Email address required by NCBI Entrez",
     )
+
+    # --- ORF finder options ---
+    parser.add_argument(
+        "--min-length",
+        type=int,
+        default=30,
+        metavar="NT",
+        help="Minimum ORF length in nucleotides",
+    )
+    parser.add_argument(
+        "--start-codons",
+        nargs="+",
+        default=["ATG"],
+        metavar="CODON",
+        help=(
+            "One or more start codons to search for. "
+            "Supply as a space-separated list, e.g.: --start-codons ATG GTG TTG"
+        ),
+    )
+    parser.add_argument(
+        "--ignore-nested",
+        action="store_true",
+        default=False,
+        help="Exclude ORFs whose start falls inside another ORF in the same frame",
+    )
+
+    # --- Output options ---
     parser.add_argument(
         "--output",
         type=str,
         default="orfs.csv",
-        help="Path for the output CSV file (default: orfs.csv)",
+        help="Path for the output CSV file",
     )
     parser.add_argument(
         "--verbose",
         action="store_true",
         help="Print the full nested ORF dictionary to stdout",
     )
+
     args = parser.parse_args()
 
     # ------------------------------------------------------------------
@@ -118,7 +198,16 @@ def main() -> None:
     email     = args.email     or input("Enter your email (required by NCBI): ").strip()
 
     # ------------------------------------------------------------------
-    # 2. Fetch and validate the sequence
+    # 2. Validate user-supplied options
+    # ------------------------------------------------------------------
+    start_codons = _validate_start_codons(args.start_codons)
+
+    if args.min_length < 3:
+        print("[ERROR] --min-length must be at least 3 (one codon).")
+        sys.exit(1)
+
+    # ------------------------------------------------------------------
+    # 3. Fetch and validate the sequence
     # ------------------------------------------------------------------
     acc, clean_seq = validate_run(accession, email)
 
@@ -127,15 +216,24 @@ def main() -> None:
         sys.exit(1)
 
     # ------------------------------------------------------------------
-    # 3. Run the ORF finder
+    # 4. Run the ORF finder
+    #    NOTE: start_codons, min_length, and ignore_nested are parsed here
+    #    and will be passed to find_orfs() once ORF_finder.py is updated.
+    #    For now they are stored and ready to wire in.
     # ------------------------------------------------------------------
-    print("[INFO] Running ORF finder across all 3 forward reading frames...")
-    nested, flat_list = find_orfs(clean_seq)
+    nested, flat_list = find_orfs(
+        clean_seq,
+        # These keyword arguments will be accepted by ORF_finder.py
+        # after the next round of changes:
+        # start_codons=start_codons,
+        # min_length=args.min_length,
+        # ignore_nested=args.ignore_nested,
+    )
 
     # ------------------------------------------------------------------
-    # 4. Report results
+    # 5. Report results
     # ------------------------------------------------------------------
-    _print_summary(nested)
+    _print_summary(nested, flat_list)
 
     if args.verbose:
         print("[DEBUG] Full nested ORF dictionary:")
@@ -150,4 +248,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
