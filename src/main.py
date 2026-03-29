@@ -1,57 +1,156 @@
 #!/usr/bin/env python3
 """
-(Everyone in the group will participate in this portion)
 main.py
+
 Purpose:
-    This script serves as the main driver for the ORF analysis pipeline.
+    Main driver for the ORF analysis pipeline.
+
 Role in Project:
-    This file functions by calling other modules to handle sequence loading, ORF detection, analysis, and reporting.
+    Calls other modules to handle sequence loading, ORF detection,
+    and CSV reporting.
+
 Input:
-    DNA sequence file in FASTA format from NCBI
+    DNA sequence fetched from NCBI via accession number.
+
 Output:
-    Summary of ORFs found and their statistics.
+    - orfs.csv  : flat table of every ORF found (one row per ORF)
+    - Summary statistics printed to the terminal
 """
 
-#!/usr/bin/env python3
-"""
-(Everyone in the group will participate in this portion)
-main.py
-Purpose:
-    This script serves as the main driver for the ORF analysis pipeline.
-Role in Project:
-    This file functions by calling other modules to handle sequence loading, ORF detection, analysis, and reporting.
-Input:
-    DNA sequence file in FASTA format from NCBI
-Output:
-    Summary of ORFs found and their statistics.
-"""
-
-from pprint import pprint
 import argparse
+import csv
+import os
+import sys
+from pprint import pprint
 
 from src.input_lib.input_validate import run as validate_run
+from src.ORF_finder import find_orfs, CSV_FIELDNAMES
 
-def main():
-    parser = argparse.ArgumentParser(description="Main ORF analysis pipeline")
-    parser.add_argument("--accession", type=str, help="NCBI accession number")
-    parser.add_argument("--email", type=str, help="Email for NCBI Entrez")
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _print_summary(nested: dict) -> None:
+    """Print a short summary of ORF counts to stdout."""
+    complete   = nested["complete"]
+    incomplete = nested["incomplete"]
+
+    n_complete_canonical      = len(complete["canonical"])
+    n_incomplete_canonical    = len(incomplete["canonical"])
+
+    n_complete_noncanonical   = sum(
+        len(v) for v in complete["noncanonical"].values()
+    )
+    n_incomplete_noncanonical = sum(
+        len(v) for v in incomplete["noncanonical"].values()
+    )
+
+    total = (
+        n_complete_canonical
+        + n_incomplete_canonical
+        + n_complete_noncanonical
+        + n_incomplete_noncanonical
+    )
+
+    print("\n========== ORF Summary ==========")
+    print(f"  Total ORFs found            : {total}")
+    print(f"  Complete   (ATG)            : {n_complete_canonical}")
+    print(f"  Incomplete (ATG)            : {n_incomplete_canonical}")
+    print(f"  Complete   (non-canonical)  : {n_complete_noncanonical}")
+    print(f"  Incomplete (non-canonical)  : {n_incomplete_noncanonical}")
+
+    # Per non-canonical start codon breakdown
+    for sc in ("GTG", "TTG"):
+        nc = len(complete["noncanonical"].get(sc, {}))
+        ni = len(incomplete["noncanonical"].get(sc, {}))
+        if nc + ni > 0:
+            print(f"    {sc} — complete: {nc}, incomplete: {ni}")
+
+    print("=================================\n")
+
+
+def _write_csv(flat_list: list, output_path: str) -> None:
+    """Write the flat ORF list to a CSV file."""
+    with open(output_path, "w", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=CSV_FIELDNAMES)
+        writer.writeheader()
+        writer.writerows(flat_list)
+    print(f"[INFO] ORF table written to: {output_path}")
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="ORF analysis pipeline — fetches a sequence from NCBI "
+                    "and reports all ORFs as a CSV file."
+    )
+    parser.add_argument(
+        "--accession",
+        type=str,
+        help="NCBI accession number (e.g. NM_001301717)",
+    )
+    parser.add_argument(
+        "--email",
+        type=str,
+        help="Email address required by NCBI Entrez",
+    )
+    parser.add_argument(
+        "--output",
+        type=str,
+        default="orfs.csv",
+        help="Path for the output CSV file (default: orfs.csv)",
+    )
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Print the full nested ORF dictionary to stdout",
+    )
     args = parser.parse_args()
-    
-    # Prompt if not provided
-    accession = args.accession or input("Enter NCBI accession number: ")
-    email = args.email or input("Enter your email (required by NCBI): ")
+
+    # ------------------------------------------------------------------
+    # 1. Get accession and email (prompt if not supplied as flags)
+    # ------------------------------------------------------------------
+    accession = args.accession or input("Enter NCBI accession number: ").strip()
+    email     = args.email     or input("Enter your email (required by NCBI): ").strip()
+
+    # ------------------------------------------------------------------
+    # 2. Fetch and validate the sequence
+    # ------------------------------------------------------------------
+    print(f"\n[INFO] Fetching sequence for accession: {accession}")
     acc, clean_seq = validate_run(accession, email)
 
     if clean_seq is None:
-        print("Pipeline failed.")
+        print("[ERROR] Pipeline failed: could not retrieve a valid sequence.")
+        sys.exit(1)
+
+    print(f"[INFO] Sequence retrieved — {len(clean_seq):,} nucleotides")
+
+    # ------------------------------------------------------------------
+    # 3. Run the ORF finder
+    # ------------------------------------------------------------------
+    print("[INFO] Running ORF finder across all 3 forward reading frames...")
+    nested, flat_list = find_orfs(clean_seq)
+
+    # ------------------------------------------------------------------
+    # 4. Report results
+    # ------------------------------------------------------------------
+    _print_summary(nested)
+
+    if args.verbose:
+        print("[DEBUG] Full nested ORF dictionary:")
+        pprint(nested)
+
+    if not flat_list:
+        print("[WARNING] No ORFs found. No CSV written.")
         return
 
-    # print("\n[INFO] Running ORF finder...\n")
-    # orfs = find_orfs(clean_seq, include_reverse=True)
-    # pprint(orfs)
+    _write_csv(flat_list, args.output)
 
 
 if __name__ == "__main__":
     main()
-
 
