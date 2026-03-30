@@ -52,39 +52,13 @@ ORCA/
 ```
 
 ### File Descriptions
-
-**`main.py`** — Pipeline driver. Parses CLI arguments, calls all modules in order, and coordinates single-sequence and comparative output.
-
-**`input_validate.py`** — Fetches a FASTA file from NCBI using an accession number, removes the header, validates the sequence against the IUPAC nucleotide alphabet, and writes a cleaned FASTA to disk.
-
-**`orf_finder.py`** — Detects ORFs across all six reading frames using NumPy-vectorized codon extraction. Supports canonical and non-canonical start codons, nested ORF detection, and configurable minimum length filtering.
-
-**`orf_analysis.py`** — Owns all computation in the pipeline:
-- Extracts ORF nucleotide sequences from the full DNA string
-- Calculates GC content and codon usage per ORF (NumPy)
-- Estimates protein length in amino acids
-- Enriches the flat ORF list with these statistics (`calculate_orf_stats`)
-- Finds repeated ORF sequences within a single dataset (`find_repeated_orfs`)
-- Compares two ORF datasets for structure, codon usage differences, and shared start sites (`compare_orf_sets`)
-
-**`statistics_summary.py`** — File writing only. Imports all computed results from `orf_analysis.py` and writes them to:
-- `output/stats_summary.txt` — human-readable single-sequence report
-- `output/orf_stats.csv` — per-ORF statistics table
-- `output/comparative_report.txt` — side-by-side comparative report (comparative mode)
-- `output/comparative_stats.csv` — codon-usage delta table (comparative mode)
+need to write 
 
 ## Output Files
 
 | File | Mode | Description |
 |------|------|-------------|
-| `output/orfs.csv` | Both | Flat ORF table for sequence 1 |
-| `output/orf_stats.csv` | Both | Per-ORF stats for sequence 1 |
-| `output/stats_summary.txt` | Both | Human-readable summary for sequence 1 |
-| `output/orfs_seq2.csv` | Comparative | Flat ORF table for sequence 2 |
-| `output/orf_stats_seq2.csv` | Comparative | Per-ORF stats for sequence 2 |
-| `output/stats_summary_seq2.txt` | Comparative | Human-readable summary for sequence 2 |
-| `output/comparative_report.txt` | Comparative | Side-by-side comparison of both sequences |
-| `output/comparative_stats.csv` | Comparative | Codon usage delta table (seq1 − seq2) |
+need to Wrute lol
 
 ## Installation
 
@@ -151,19 +125,18 @@ python main.py --accession NM_001301717 --accession2 NM_001256799 \
 ## Algorithm Description
 
 ### Input Validation (`input_validate.py`)
-The accession number is passed to NCBI's Entrez API via `Biopython`. The returned FASTA file is parsed with `SeqIO`, the header is stripped, and the raw sequence is validated against the IUPAC nucleotide alphabet. Invalid characters are removed and the cleaned sequence is written to `output/cleaned_sequence.fasta` before being passed to the ORF finder.
+need to write 
 
 ### ORF Detection (`orf_finder.py`)
-The sequence is scanned in all six reading frames using NumPy-vectorized codon arrays. For each frame, every start codon position is identified with a boolean mask and paired with the next downstream stop codon. ORFs below the minimum length threshold are discarded. The reverse complement strand is generated with a vectorized complement lookup and scanned with the same logic. Coordinates on the reverse strand are converted back to forward-strand positions. Each ORF is then checked for nesting (whether its start falls inside another ORF on the same strand and frame).
+need to write 
 
 ### ORF Analysis (`orf_analysis.py`)
-For each detected ORF, the nucleotide sequence is extracted from the full DNA string (with reverse complement handling for minus-strand ORFs). GC content is computed with NumPy boolean masking, codon usage is counted with `np.unique`, and protein length is estimated from the nucleotide length. In comparative mode, two enriched ORF datasets are compared for counts by category, reading-frame distribution, length statistics, mean GC per ORF, top codons, codon usage differences (delta = seq1 − seq2), and shared vs unique ORF start positions.
+need to write 
 
 ### Statistics Output (`statistics_summary.py`)
-Receives all computed results from `orf_analysis.py` and writes them to disk. No calculations are performed here.
+need to write 
 
 ## References
-
 - NCBI Entrez API: https://www.ncbi.nlm.nih.gov/books/NBK25499/
 - Biopython: https://biopython.org/
 - NumPy: https://numpy.org/
