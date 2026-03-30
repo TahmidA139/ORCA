@@ -5,7 +5,7 @@
 # ORCA (ORF Recognition and Comparative Annotator)
 
 ## Objective
-ORCA is a command-line bioinformatics pipeline that automates ORF detection and analysis in DNA sequences. It helps researchers identify potential protein-coding regions, compare ORF structure across two species or transcripts, and generate detailed statistics for further study — all from a single NCBI accession number (or two, for comparative mode).
+ORCA is a command-line bioinformatics pipeline that automates ORF detection and analysis in DNA sequences. It helps researchers identify potential protein-coding regions, compare ORF structure across two species or transcripts, and generates detailed statistics for further study. all from a single NCBI accession number (or two, for comparative mode)!
 
 ## Features
 - Downloads DNA sequences in FASTA format directly from NCBI using an accession number
@@ -26,25 +26,25 @@ ORCA/
 ├── environment.yml
 ├── src/
 │   ├── __init__.py
-│   ├── main.py                        # Pipeline driver; handles CLI args and output
+│   ├── main.py                        
 │   │
 │   ├── input_lib/                     # Tahmid Anwar
 │   │   ├── __init__.py
-│   │   └── input_validate.py          # Fetches from NCBI, validates, writes cleaned FASTA
+│   │   └── input_validate.py         
 │   │
 │   ├── orf_finder_lib/                # Erin Nicole Decocker
 │   │   ├── __init__.py
-│   │   └── orf_finder.py              # Six-frame ORF detection with NumPy vectorization
+│   │   └── orf_finder.py              
 │   │
 │   ├── analysis_lib/                  # Amanda Yaworsky
 │   │   ├── __init__.py
-│   │   └── orf_analysis.py            # All calculations: per-ORF stats, repeated ORFs,
-│   │                                  # comparative analysis between two sequences
+│   │   └── orf_analysis.py            
+│   │                                  
 │   │
 │   └── statistics_lib/
 │       ├── __init__.py
-│       └── statistics_summary.py      # File writing only: imports results from
-│                                      # orf_analysis.py and writes reports/CSVs
+│       └── statistics_summary.py      
+│                                      
 │
 └── examples/
     ├── example_output.fasta
@@ -137,6 +137,7 @@ need to write
 need to write 
 
 ## References
+- NEEDDDD TO ADD STUFF HERE AS WELL
 - NCBI Entrez API: https://www.ncbi.nlm.nih.gov/books/NBK25499/
 - Biopython: https://biopython.org/
 - NumPy: https://numpy.org/
