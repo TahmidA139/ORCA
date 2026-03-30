@@ -71,7 +71,6 @@ if __name__ == "__main__":
     print(find_repeated_orfs(orfs))
     print(calculate_similarity_scores(orfs))
 
-"""
 def load_orfs_from_file(filename):
     with open(filename, "r") as f:
         return [line.strip() for line in f if line.strip()]
