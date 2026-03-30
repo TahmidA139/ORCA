@@ -193,8 +193,8 @@ def _run_single_sequence(
     # 4. Write output files
     _write_csv(flat_list, orf_csv)
 
-    per_orf_stats = calculate_orf_stats(flat_list, clean_seq)
-    _write_csv_with_fields(per_orf_stats, stats_csv, ORF_STATS_FIELDNAMES)
+    # per_orf_stats = calculate_orf_stats(flat_list, clean_seq)
+    # _write_csv_with_fields(per_orf_stats, stats_csv, ORF_STATS_FIELDNAMES)
 
     write_stats_to_file(flat_list, clean_seq, acc, outfile=summary_txt)
 
