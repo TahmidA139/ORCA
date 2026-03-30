@@ -196,7 +196,7 @@ def _run_single_sequence(
     # per_orf_stats = calculate_orf_stats(flat_list, clean_seq)
     # _write_csv_with_fields(per_orf_stats, stats_csv, ORF_STATS_FIELDNAMES)
 
-    write_stats_to_file(flat_list, clean_seq, acc, outfile=summary_txt)
+    # write_stats_to_file(flat_list, clean_seq, acc, outfile=summary_txt)
 
     return acc, clean_seq, nested, flat_list
 
