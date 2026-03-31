@@ -122,8 +122,7 @@ python main.py --accession NM_001301717 --email you@example.com \
 
 Comparative mode — two accessions side by side:
 ```bash
-python main.py --accession NM_001301717 --accession2 NM_001256799 \
-    --email you@example.com
+python main.py --accession NM_001301717 --accession2 NM_001301718.2 --email you@example.com
 ```
 
 ## Algorithm Description
