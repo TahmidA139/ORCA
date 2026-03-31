@@ -111,18 +111,18 @@ conda activate ORCA
 
 Single sequence — all defaults (ATG only, min 30 nt, nested ORFs included):
 ```bash
-python main.py --accession NM_001301717 --email you@example.com
+python -m src.main --accession NM_001301717 --email you@example.com
 ```
 
 Single sequence — all three start codons, minimum 60 nt, no nested ORFs:
 ```bash
-python main.py --accession NM_001301717 --email you@example.com \
+python -m src.main --accession NM_001301717 --email you@example.com \
     --start-codons ATG GTG TTG --min-length 60 --ignore-nested
 ```
 
 Comparative mode — two accessions side by side:
 ```bash
-python main.py --accession NM_001301717 --accession2 NM_001301718.2 --email you@example.com
+python -m src.main --accession NM_001301717 --accession2 NM_001301718.2 --email you@example.com
 ```
 
 ## Algorithm Description
