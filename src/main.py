@@ -92,7 +92,7 @@ def _print_summary(nested: dict, flat_list: list, label: str = "") -> None:
     minus_strand = sum(1 for o in flat_list if o.get("strand") == "-")
 
     header = f" ORF Summary{' — ' + label if label else ''} "
-    print(f"\n{'=' * 10}{header}{'=' * 10}")
+    print(f"\n{'-' * 10}{header}{'-' * 10}")
     print(f"  Total ORFs found            : {total}")
     print(f"  Forward strand (+)          : {plus_strand}")
     print(f"  Reverse strand (-)          : {minus_strand}")
@@ -109,7 +109,7 @@ def _print_summary(nested: dict, flat_list: list, label: str = "") -> None:
 
     nested_found = _find_nested(flat_list)
     print(f"  Nested ORFs detected        : {len(nested_found)}")
-    print("=" * (20 + len(header)))
+    print("-" * (20 + len(header)))
 
 
 def _write_csv(flat_list: list, output_path: str) -> None:
