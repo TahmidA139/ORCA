@@ -22,6 +22,7 @@ Output (single-sequence mode):
 """
 
 import argparse
+import csv
 import os
 import sys
 
@@ -31,7 +32,6 @@ from src.orf_finder_lib.output_writer import write_combined_csv, print_summary
 from src.graphics_lib.graphics import plot_orf_map, plot_comparative_orf_map
 
 VALID_START_CODONS = {"ATG", "GTG", "TTG"}
-
 
 def _run_single_sequence(
     accession:     str,
@@ -43,7 +43,7 @@ def _run_single_sequence(
     stats_csv:     str,
     summary_txt:   str,
     label:         str = "",
-) -> tuple[str, str, dict, list] | tuple[None, None, None, None]:
+) -> tuple[str, str, list, list] | tuple[None, None, None, None]:
     """
     Fetch, validate, analyse, and write outputs for a single accession.
 
@@ -58,20 +58,21 @@ def _run_single_sequence(
         print(f"[ERROR] Pipeline failed for accession '{accession}'.")
         return None, None, None, None
 
-    # 2. Find ORFs — unpack all three return values
-    nested, flat_list, nested_count = find_orfs(
+    # 2. Find ORFs
+    nested, flat_list = find_orfs(
         clean_seq,
         start_codons=start_codons,
         min_length=min_length,
         ignore_nested=ignore_nested,
     )
 
-    # 3. Print terminal summary — pass nested_count directly
-    print_summary(nested, flat_list, nested_count=nested_count, label=label or accession)
+    # 3. Print terminal summary
+    print_summary(nested, flat_list, label=label or accession)
 
     if not flat_list:
         print(f"[WARNING] No ORFs found for '{accession}'. No output files written.")
         return acc, clean_seq, nested, flat_list
+
 
     return acc, clean_seq, nested, flat_list
 
@@ -144,9 +145,9 @@ def main() -> None:
     args = parser.parse_args()
 
     # ── 1. Collect accession(s) and email ─────────────────────────────────
-    accession  = args.accession or input("Enter NCBI accession number: ").strip()
-    accession2 = args.accession2   # None if not supplied
-    email      = args.email     or input("Enter your email (required by NCBI): ").strip()
+    accession  = args.accession  or input("Enter NCBI accession number: ").strip()
+    accession2 = args.accession2  # None if not supplied
+    email      = args.email      or input("Enter your email (required by NCBI): ").strip()
 
     comparative = accession2 is not None
 
@@ -177,8 +178,6 @@ def main() -> None:
         sys.exit(1)
 
     # ── 4. Run pipeline for sequence 2 (if requested) ────────────────────
-    acc2 = seq2 = flat2 = None   # always defined so write/plot calls are safe
-
     if comparative:
         print(f"\n[ORCA] Processing sequence 2: {accession2}")
 
@@ -197,33 +196,27 @@ def main() -> None:
         if acc2 is None:
             print("[ERROR] Pipeline failed for sequence 2.")
             sys.exit(1)
-
-    # ── 5. Write combined CSV ─────────────────────────────────────────────
+            
     write_combined_csv(
-        acc1        = acc1,
-        flat1       = flat1,
-        seq1        = seq1,
-        output_path = args.output,
-        acc2        = acc2,
-        flat2       = flat2,
-        seq2        = seq2,
-    )
-
-    # ── 6. ORF map ────────────────────────────────────────────────────────
+            acc1=acc1, flat1=flat1, seq1=seq1,
+            output_path=args.output,
+            acc2=acc2 if comparative else None,
+            flat2=flat2 if comparative else None,
+            seq2=seq2 if comparative else None,
+        )
+   
+    # ── 5. ORF map ────────────────────────────────────────────────────────
     if comparative:
         plot_comparative_orf_map(
-            flat1       = flat1, seq_len1 = len(seq1), acc1 = acc1,
-            flat2       = flat2, seq_len2 = len(seq2), acc2 = acc2,
-            output_path = "output/orf_map.png",
+            flat1=flat1, seq_len1=len(seq1), acc1=acc1,
+            flat2=flat2, seq_len2=len(seq2), acc2=acc2,
+            output_path="output/orf_map.png",
         )
     else:
         plot_orf_map(
-            flat_list   = flat1,
-            seq_len     = len(seq1),
-            accession   = acc1,
-            output_path = "output/orf_map.png",
+            flat_list=flat1, seq_len=len(seq1),
+            accession=acc1, output_path="output/orf_map.png",
         )
-
-
+        
 if __name__ == "__main__":
     main()
