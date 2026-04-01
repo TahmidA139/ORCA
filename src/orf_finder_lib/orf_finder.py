@@ -5,20 +5,17 @@ orf_finder.py
 
 Purpose:
     Public API for ORF detection across all six reading frames.
-    Low-level scanning helpers live in _frame_scanner.py.
+    Low-level scanning helpers live in frame_scanner.py.
 
 Public API
 ----------
     find_orfs(dna_sequence, start_codons, min_length, ignore_nested)
         → (nested_dict, flat_list)
+    find_nested(flat_list)
+        → list of nested ORF records
 
     CSV_FIELDNAMES : list of str
-        Column order for CSV export (used by main.py).
-
-Constants
----------
-    ALL_START_CODONS, STOP_CODONS, CANONICAL_START, NONCANONICAL_STARTS
-    DEFAULT_START_CODONS, DEFAULT_MIN_LENGTH, DEFAULT_IGNORE_NESTED
+        Column order for CSV export (used by output_writer.py).
 """
 
 from __future__ import annotations
@@ -45,8 +42,8 @@ DEFAULT_MIN_LENGTH:    int       = 30
 DEFAULT_IGNORE_NESTED: bool      = False
 
 CSV_FIELDNAMES: List[str] = [
-    "orf_id", "status", "strand", "start_codon",
-    "frame", "start", "end", "length_nt", 
+    "orf_id", "strand", "start_codon",
+    "frame", "start", "end", "length_nt",
 ]
 
 
@@ -70,20 +67,17 @@ def _scan_all_frames(
 
 
 # ---------------------------------------------------------------------------
-# Step 2 — nesting filter and status encoding
+# Step 2 — nesting filter
 # ---------------------------------------------------------------------------
 
 def _apply_nesting(
     all_orfs:      List[Dict[str, Any]],
     ignore_nested: bool,
 ) -> List[Dict[str, Any]]:
-    """Annotate is_nested, optionally remove nested ORFs, encode into status."""
+    """Annotate is_nested and optionally remove nested ORFs."""
     all_orfs = _mark_nested(all_orfs)
     if ignore_nested:
         all_orfs = [o for o in all_orfs if not o["is_nested"]]
-    for orf in all_orfs:
-        if orf["is_nested"]:
-            orf["status"] = f"{orf['status']}|nested"
     return all_orfs
 
 
@@ -96,45 +90,33 @@ def _make_nested_dict(
 ) -> Dict[str, Any]:
     """Return an empty nested output dictionary with the correct structure."""
     return {
-        "complete": {
-            "canonical":    {},
-            "noncanonical": {sc: {} for sc in active_noncanonical},
-        },
-        "incomplete": {
-            "canonical":    {},
-            "noncanonical": {sc: {} for sc in active_noncanonical},
-        },
+        "canonical":    {},
+        "noncanonical": {sc: {} for sc in active_noncanonical},
     }
 
 
 def _label_and_insert(
-    orf:          Dict[str, Any],
-    nested_dict:  Dict[str, Any],
-    counts:       Dict[str, int],
-    active_nc:    List[str],
+    orf:         Dict[str, Any],
+    nested_dict: Dict[str, Any],
+    counts:      Dict[str, int],
+    active_nc:   List[str],
 ) -> str:
     """
     Assign a label to one ORF, insert it into nested_dict, and return the label.
 
-    counts keys: 'canonical_complete', 'canonical_incomplete',
-                 '<CODON>_complete', '<CODON>_incomplete'
+    counts keys: 'canonical', '<CODON>'
     """
-    sc          = orf["start_codon"]
-    base_status = orf["status"].split("|")[0]
-    complete    = base_status == "complete"
+    sc = orf["start_codon"]
 
     if sc == CANONICAL_START:
-        key   = f"canonical_{base_status}"
-        counts[key] = counts.get(key, 0) + 1
-        label = f"ORF{counts[key]}" if complete else f"Incomplete_ORF{counts[key]}"
-        nested_dict["complete" if complete else "incomplete"]["canonical"][label] = orf
+        counts["canonical"] = counts.get("canonical", 0) + 1
+        label = f"ORF{counts['canonical']}"
+        nested_dict["canonical"][label] = orf
 
     elif sc in active_nc:
-        key   = f"{sc}_{base_status}"
-        counts[key] = counts.get(key, 0) + 1
-        n     = counts[key]
-        label = f"{sc}_ORF{n}" if complete else f"{sc}_Incomplete_ORF{n}"
-        nested_dict["complete" if complete else "incomplete"]["noncanonical"][sc][label] = orf
+        counts[sc] = counts.get(sc, 0) + 1
+        label = f"{sc}_ORF{counts[sc]}"
+        nested_dict["noncanonical"][sc][label] = orf
 
     else:
         label = "unknown"
@@ -153,8 +135,8 @@ def _build_outputs(
     counts:     Dict[str, int]       = {}
 
     for orf in all_orfs:
-        label               = _label_and_insert(orf, nested_dict, counts, active_nc)
-        flat_record         = dict(orf)
+        label             = _label_and_insert(orf, nested_dict, counts, active_nc)
+        flat_record       = dict(orf)
         flat_record["orf_id"] = label
         flat_list.append(flat_record)
 
@@ -172,7 +154,7 @@ def find_orfs(
     ignore_nested: bool      = DEFAULT_IGNORE_NESTED,
 ) -> Tuple[Dict[str, Any], List[Dict[str, Any]]]:
     """
-    Find all ORFs in all six reading frames of a DNA sequence.
+    Find all complete ORFs in all six reading frames of a DNA sequence.
 
     Parameters
     ----------
@@ -188,9 +170,9 @@ def find_orfs(
     Returns
     -------
     nested_dict : dict
-        Hierarchical dict organised by complete/incomplete → canonical/noncanonical.
+        Hierarchical dict organised by canonical/noncanonical.
     flat_list : list of dict
-        Flat list of all ORF records with orf_id, strand, status, is_nested fields.
+        Flat list of all ORF records with orf_id, strand, is_nested fields.
     """
     dna_sequence = dna_sequence.upper().strip()
 
@@ -199,7 +181,8 @@ def find_orfs(
 
     return _build_outputs(all_orfs, start_codons)
 
-def find_nested(flat_list: list) -> list:
+
+def find_nested(flat_list: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """Return the subset of ORFs that are nested inside another ORF."""
     nested_orfs = []
     for i, orf in enumerate(flat_list):
@@ -209,8 +192,6 @@ def find_nested(flat_list: list) -> list:
             if orf["strand"] != other["strand"]:
                 continue
             if orf["frame"] != other["frame"]:
-                continue
-            if other["end"] is None:
                 continue
             if other["start"] < orf["start"] < other["end"]:
                 nested_orfs.append(orf)
