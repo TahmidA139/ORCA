@@ -73,18 +73,12 @@ def _scan_all_frames(
 def _apply_nesting(
     all_orfs:      List[Dict[str, Any]],
     ignore_nested: bool,
-) -> Tuple[List[Dict[str, Any]], int]:
-    """
-    Annotate is_nested and optionally remove nested ORFs.
-
-    Returns the (possibly filtered) ORF list AND the count of nested ORFs
-    detected before filtering, so callers can report the true number found.
-    """
-    all_orfs      = _mark_nested(all_orfs)
-    nested_count  = sum(1 for o in all_orfs if o["is_nested"])
+) -> List[Dict[str, Any]]:
+    """Annotate is_nested and optionally remove nested ORFs."""
+    all_orfs = _mark_nested(all_orfs)
     if ignore_nested:
-        all_orfs  = [o for o in all_orfs if not o["is_nested"]]
-    return all_orfs, nested_count
+        all_orfs = [o for o in all_orfs if not o["is_nested"]]
+    return all_orfs
 
 
 # ---------------------------------------------------------------------------
@@ -158,7 +152,7 @@ def find_orfs(
     start_codons:  List[str] = DEFAULT_START_CODONS,
     min_length:    int       = DEFAULT_MIN_LENGTH,
     ignore_nested: bool      = DEFAULT_IGNORE_NESTED,
-) -> Tuple[Dict[str, Any], List[Dict[str, Any]], int]:
+) -> Tuple[Dict[str, Any], List[Dict[str, Any]]]:
     """
     Find all complete ORFs in all six reading frames of a DNA sequence.
 
@@ -178,43 +172,28 @@ def find_orfs(
     nested_dict : dict
         Hierarchical dict organised by canonical/noncanonical.
     flat_list : list of dict
-        Flat list of ORF records with orf_id, strand, is_nested fields.
-    nested_count : int
-        Number of nested ORFs detected (before any filtering).
+        Flat list of all ORF records with orf_id, strand, is_nested fields.
     """
     dna_sequence = dna_sequence.upper().strip()
 
-    all_orfs              = _scan_all_frames(dna_sequence, start_codons, min_length)
-    all_orfs, nested_count = _apply_nesting(all_orfs, ignore_nested)
+    all_orfs = _scan_all_frames(dna_sequence, start_codons, min_length)
+    all_orfs = _apply_nesting(all_orfs, ignore_nested)
 
-    nested_dict, flat_list = _build_outputs(all_orfs, start_codons)
-    return nested_dict, flat_list, nested_count
+    return _build_outputs(all_orfs, start_codons)
 
 
 def find_nested(flat_list: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """
-    Return the subset of ORFs that are nested inside another ORF.
-
-    Uses min/max on start/end so minus-strand coordinates (where start > end
-    in forward-strand space) are handled correctly.
-    """
+    """Return the subset of ORFs that are nested inside another ORF."""
     nested_orfs = []
     for i, orf in enumerate(flat_list):
-        if orf.get("end") is None:
-            continue
-        orf_lo = min(orf["start"], orf["end"])
-        orf_hi = max(orf["start"], orf["end"])
         for j, other in enumerate(flat_list):
-            if i == j or other.get("end") is None:
+            if i == j:
                 continue
             if orf["strand"] != other["strand"]:
                 continue
             if orf["frame"] != other["frame"]:
                 continue
-            other_lo = min(other["start"], other["end"])
-            other_hi = max(other["start"], other["end"])
-            if other_lo < orf_lo and orf_hi < other_hi:
+            if other["start"] < orf["start"] < other["end"]:
                 nested_orfs.append(orf)
                 break
     return nested_orfs
-
