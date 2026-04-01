@@ -35,8 +35,6 @@ CODON_COLORS = {
 }
 DEFAULT_COLOR = "#aaaaaa"
 
-# Frame index → y position within a single map
-# +1, +2, +3 on top half, -1, -2, -3 on bottom half
 FRAME_Y = {
     ("+", 0): 5,
     ("+", 1): 4,
@@ -125,9 +123,9 @@ def _draw_orf_map(
     ax.set_title(f"{accession}  —  {seq_len} bp", fontsize=10, fontweight="bold")
 
     # ── Strand labels ─────────────────────────────────────────────────────
-    ax.text(-seq_len * 0.01, 4, "+ strand", va="center", ha="right",
+    ax.text(-seq_len * 0.01, 4, "(+) strand", va="center", ha="right",
             fontsize=8, color="#444444", rotation=90)
-    ax.text(-seq_len * 0.01, 1, "− strand", va="center", ha="right",
+    ax.text(-seq_len * 0.01, 1, "(−) strand", va="center", ha="right",
             fontsize=8, color="#444444", rotation=90)
 
 
