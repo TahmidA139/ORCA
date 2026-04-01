@@ -16,29 +16,9 @@ Input:
     DNA sequence(s) fetched from NCBI via accession number(s).
 
 Output (single-sequence mode):
-    output/orfs.csv            : flat table of every ORF found
-    output/orf_stats.csv       : per-ORF statistics
-    output/stats_summary.txt   : human-readable summary report
-
-Output (comparative mode, additional files):
-    output/orfs_seq2.csv           : ORF table for the second sequence
-    output/orf_stats_seq2.csv      : per-ORF statistics for the second sequence
-    output/stats_summary_seq2.txt  : human-readable summary for the second sequence
-    output/comparative_report.txt  : side-by-side comparative report
-    output/comparative_stats.csv   : codon-usage delta table
-
-Example usage
--------------
-# Single sequence — all defaults (ATG only, min length 30, nested included)
-python main.py --accession NM_001301717 --email you@example.com
-
-# Comparative — two accessions
-python main.py --accession NM_001301717 --accession2 NM_001256799 \\
-    --email you@example.com
-
-# All three start codons, minimum 60 nt, ignore nested ORFs
-python main.py --accession NM_001301717 --email you@example.com \\
-    --start-codons ATG GTG TTG --min-length 60 --ignore-nested
+    output/cleaned_sequence.fasta            : cleaned sequence
+    output/orf_stats.csv                     : per-ORF statistics
+    output/stats_summary.txt                 : human-readable summary report
 """
 
 import argparse
