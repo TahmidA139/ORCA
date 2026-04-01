@@ -88,7 +88,7 @@ def _run_single_sequence(
     )
 
     # 3. Print terminal summary
-    _print_summary(nested, flat_list, label=label or accession)
+    print_summary(nested, flat_list, label=label or accession)
 
     if not flat_list:
         print(f"[WARNING] No ORFs found for '{accession}'. No output files written.")
