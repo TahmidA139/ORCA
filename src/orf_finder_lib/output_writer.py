@@ -35,12 +35,7 @@ OUTPUT_FIELDNAMES: List[str] = CSV_FIELDNAMES + ["sequence (5'->3')"]
 # Summary printing
 # ---------------------------------------------------------------------------
 
-def print_summary(
-    nested:       dict,
-    flat_list:    list,
-    nested_count: int  = 0,
-    label:        str  = "",
-) -> None:
+def print_summary(nested: dict, flat_list: list, nested_count: int = 0, label: str = "") -> None:
     """
     Print a short summary of ORF counts to stdout.
 
