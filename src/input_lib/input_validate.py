@@ -176,6 +176,16 @@ def validate_start_codons(requested: list) -> list:
     Exits with a helpful message if any unrecognised codon is given.
     """
     upper   = [c.upper() for c in requested]
+     
+    # Warn if any non-canonical start codons are requested
+    noncanonical_requested = [c for c in upper if c in {"GTG", "TTG"}]
+    if noncanonical_requested:
+        print(
+            f"[WARNING] Non-canonical start codon(s) detected: {', '.join(noncanonical_requested)}\n"
+            f"          GTG and TTG produce many false positives in eukaryotic sequences.\n"
+            f"          Consider using ATG only unless working with prokaryotic sequences."
+        )
+    
     unknown = [c for c in upper if c not in VALID_START_CODONS]
     if unknown:
         print(
