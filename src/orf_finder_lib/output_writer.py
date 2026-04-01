@@ -23,7 +23,7 @@ import os
 from typing import List, Optional
 
 from src.orf_finder_lib.frame_scanner import extract_orf_sequence
-from src.orf_finder_lib.orf_finder import CSV_FIELDNAMES
+from src.orf_finder_lib.orf_finder import CSV_FIELDNAMES, find_nested
 
 # Fieldnames with the sequence column appended
 OUTPUT_FIELDNAMES: List[str] = CSV_FIELDNAMES + ["sequence (5'->3')"]
