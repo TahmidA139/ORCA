@@ -217,5 +217,4 @@ def plot_comparative_orf_map(
     plt.tight_layout()
     plt.savefig(output_path, dpi=150, bbox_inches="tight")
     plt.close()
-    print(f"[INFO] Comparative ORF map saved to: {output_path}")
 
