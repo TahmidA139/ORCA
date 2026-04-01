@@ -160,7 +160,7 @@ def main() -> None:
     comparative = accession2 is not None
 
     # ── 2. Validate shared options ────────────────────────────────────────
-    start_codons = _validate_start_codons(args.start_codons)
+    start_codons = validate_start_codons(args.start_codons)
 
     if args.min_length < 3:
         print("[ERROR] --min-length must be at least 3 (one codon).")
