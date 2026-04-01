@@ -26,7 +26,7 @@ import csv
 import os
 import sys
 
-from src.input_lib.input_validate import run as validate_run
+from src.input_lib.input_validate import run as validate_run, validate_start_codons
 from src.orf_finder_lib.orf_finder import find_orfs, CSV_FIELDNAMES
 from src.orf_finder_lib.output_writer import write_combined_csv, print_summary
 
