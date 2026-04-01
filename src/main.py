@@ -48,6 +48,7 @@ import sys
 
 from src.input_lib.input_validate import run as validate_run
 from src.orf_finder_lib.orf_finder import find_orfs, CSV_FIELDNAMES
+from src.orf_finder_lib.csv_writer import write_combined_csv
 
 # Valid start codons the user is allowed to request
 VALID_START_CODONS = {"ATG", "GTG", "TTG"}
@@ -111,29 +112,6 @@ def _print_summary(nested: dict, flat_list: list, label: str = "") -> None:
     print(f"  Nested ORFs detected        : {len(nested_found)}")
     print("-" * (20 + len(header)))
 
-
-def _write_csv(flat_list: list, output_path: str) -> None:
-    """Write the flat ORF list to a CSV file."""
-    os.makedirs(os.path.dirname(output_path), exist_ok=True) \
-        if os.path.dirname(output_path) else None
-    with open(output_path, "w", newline="") as fh:
-        writer = csv.DictWriter(fh, fieldnames=CSV_FIELDNAMES, extrasaction="ignore")
-        writer.writeheader()
-        writer.writerows(flat_list)
-    print(f"[INFO] ORF table written to: {output_path}")
-
-
-def _write_csv_with_fields(data: list, output_path: str, fieldnames: list) -> None:
-    """Write a list of dicts to a CSV file with specified fieldnames."""
-    os.makedirs(os.path.dirname(output_path), exist_ok=True) \
-        if os.path.dirname(output_path) else None
-    with open(output_path, "w", newline="") as fh:
-        writer = csv.DictWriter(fh, fieldnames=fieldnames, extrasaction="ignore")
-        writer.writeheader()
-        writer.writerows(data)
-    print(f"[INFO] Table written to: {output_path}")
-
-
 def _validate_start_codons(requested: list) -> list:
     """
     Upper-case and validate the user-supplied start codons.
@@ -190,13 +168,6 @@ def _run_single_sequence(
         print(f"[WARNING] No ORFs found for '{accession}'. No output files written.")
         return acc, clean_seq, nested, flat_list
 
-    # 4. Write output files
-    _write_csv(flat_list, orf_csv)
-
-    # per_orf_stats = calculate_orf_stats(flat_list, clean_seq)
-    # _write_csv_with_fields(per_orf_stats, stats_csv, ORF_STATS_FIELDNAMES)
-
-    # write_stats_to_file(flat_list, clean_seq, acc, outfile=summary_txt)
 
     return acc, clean_seq, nested, flat_list
 
@@ -324,6 +295,14 @@ def main() -> None:
         if acc2 is None:
             print("[ERROR] Pipeline failed for sequence 2.")
             sys.exit(1)
+            
+    write_combined_csv(
+            acc1=acc1, flat1=flat1, seq1=seq1,
+            output_path=args.output,
+            acc2=acc2 if comparative else None,
+            flat2=flat2 if comparative else None,
+            seq2=seq2 if comparative else None,
+        )
 
 if __name__ == "__main__":
     main()
