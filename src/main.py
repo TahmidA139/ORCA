@@ -59,7 +59,7 @@ def _run_single_sequence(
         return None, None, None, None
 
     # 2. Find ORFs
-    nested, flat_list = find_orfs(
+    nested, flat_list, nested_count = find_orfs(
         clean_seq,
         start_codons=start_codons,
         min_length=min_length,
@@ -67,7 +67,7 @@ def _run_single_sequence(
     )
 
     # 3. Print terminal summary
-    print_summary(nested, flat_list, label=label or accession)
+    print_summary(nested, flat_list, nested_count=nested_count, label=label or accession)
 
     if not flat_list:
         print(f"[WARNING] No ORFs found for '{accession}'. No output files written.")
