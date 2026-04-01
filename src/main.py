@@ -30,13 +30,8 @@ from src.input_lib.input_validate import run as validate_run, validate_start_cod
 from src.orf_finder_lib.orf_finder import find_orfs, CSV_FIELDNAMES
 from src.orf_finder_lib.output_writer import write_combined_csv, print_summary
 
-# Valid start codons the user is allowed to request
 VALID_START_CODONS = {"ATG", "GTG", "TTG"}
 
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
 def _run_single_sequence(
     accession:     str,
     email:         str,
@@ -80,10 +75,6 @@ def _run_single_sequence(
 
     return acc, clean_seq, nested, flat_list
 
-
-# ---------------------------------------------------------------------------
-# Main
-# ---------------------------------------------------------------------------
 
 def main() -> None:
     parser = argparse.ArgumentParser(
