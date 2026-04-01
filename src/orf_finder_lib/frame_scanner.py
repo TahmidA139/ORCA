@@ -175,4 +175,3 @@ def extract_orf_sequence(orf: dict, forward_seq: str) -> str:
         return forward_seq[start:end]
     else:
         return _reverse_complement(forward_seq[start:end])
-
