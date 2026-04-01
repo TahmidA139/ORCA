@@ -4,14 +4,18 @@ This Python module provides basic tools for analyzing Open Reading Frames (ORFs)
 
 ## nicoles commment:
 **Note on calculate_similarity_scores:**
-- We are dropping the position-by-position similarity score comparison between every ORF pair. The reason is that comparing every ORF to every other ORF scales very poorly. Like it means for a sequence with possibly hundreds of ORFs this becomes thousands of comparisons that are also not biologically meaningful without lotsssss more functions and analysis. So instead we think it would be best to replace similiarity scores   with codon usage analysis (simpler math analysis) and comparative statistics between two sequences (comp stats will be in the stats files not ur stuff), which is more informative and computationally reasonable.
+- We are dropping the position-by-position similarity score comparison between **every ORF pair**. The reason is that comparing every ORF to every other ORF scales very poorly. Like it means for a sequence with possibly hundreds of ORFs this becomes thousands of comparisons that are also not biologically meaningful without lotsssss more functions and analysis.
+- it would still be nice to have a similarity score between the sequnece 1 and sequence 2. (only two sequences so its easier than doing all the orfs) that way your hard work is not completely lost you are just doing less work and its more biologically meaninful.
 
 **Functions that need to be in this file:**
 - **find_repeated_orfs** — you have this! you do need to add list of ORF dicts instead of raw sequences tho 
 - **calculate_orf_stats** — Loops over every ORF and computes per-ORF statistics (GC content, protein length, codon usage). Calls the helper functions below to do the actual math (helpers keep functions less than 40 lines lol)
 - **extract_sequence** — pulls the actual nucleotide sequence of each ORF out of the full DNA string. Needs to handle both forward and reverse strand ORFs separately
 - **gc_content** — calculates what percentage of a sequence is G or C bases. Called by calculate_orf_stats for each ORF
-- **protein_length** — estimates how many amino acids the ORF would produce. Complete ORFs subtract the stop codon, incomplete ORFs use the full length
+- **protein_length** — determines how many amino acids the ORF produces. 
+
+do all of those ↑↑↑ before touching the codon usage stuff. 
+
 - **codon_usage** — counts how many times each codon appears in an ORF sequence. Called by calculate_orf_stats for each ORF
 - **codon_usage_totals** — aggregates codon usage counts across all ORFs into one summary dictionary. 
 - **top_codons** — takes the aggregated codon usage and returns just the top 10 most used codons.
