@@ -129,7 +129,6 @@ def write_cleaned_fasta(
     )
     with open(output_path, "w") as fh:
         SeqIO.write(record, fh, "fasta")
-    print(f"[INFO] Cleaned FASTA written to: {output_path}")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
