@@ -77,22 +77,18 @@ def _find_stop_codon_index(
 # ---------------------------------------------------------------------------
 
 def _mark_nested(all_orfs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """
-    Add is_nested boolean to every ORF record in-place.
-
-    An ORF is nested if its start position falls strictly inside another
-    ORF's start-end range on the same strand and reading frame.
-    """
     for i, orf in enumerate(all_orfs):
         orf["is_nested"] = any(
-            other["start"] < orf["start"] < other["end"]
+            min(other["start"], other["end"]) < min(orf["start"], orf["end"])
+            and max(orf["start"], orf["end"]) < max(other["start"], other["end"])
             for j, other in enumerate(all_orfs)
             if i != j
-            and orf["strand"] == other["strand"]
-            and orf["frame"]  == other["frame"]
+            and orf["strand"]  == other["strand"]
+            and orf["frame"]   == other["frame"]
+            and other["end"]   is not None
+            and orf["end"]     is not None
         )
     return all_orfs
-
 
 # ---------------------------------------------------------------------------
 # Core frame scanner
