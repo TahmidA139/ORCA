@@ -9,7 +9,7 @@ This Python module provides basic tools for analyzing Open Reading Frames (ORFs)
 
 **Functions that need to be in this file:**
 - **find_repeated_orfs** — you have this! you do need to add list of ORF dicts instead of raw sequences tho 
-- **calculate_orf_stats** — Loops over every ORF and computes per-ORF statistics (GC content, protein length, codon usage). Calls the helper functions below to do the actual math (helpers keep functions less than 40 lines lol)
+- **calculate_orf_stats** — Loops over every ORF and computes per-ORF statistics (GC content, protein length, codon usage). Calls the helper functions below to do the actual math (helpers keep functions less than 40 lines)
 - **extract_sequence** — pulls the actual nucleotide sequence of each ORF out of the full DNA string. Needs to handle both forward and reverse strand ORFs separately
 - **gc_content** — calculates what percentage of a sequence is G or C bases. Called by calculate_orf_stats for each ORF
 - **protein_length** — determines how many amino acids the ORF produces. 
@@ -22,7 +22,7 @@ do all of those ↑↑↑ before touching the codon usage stuff.
 
 If you want me to do this part and then you do the stats file which will legit just be to make the two txt summary output files with the comparison let me know. If you want to keep your part let me know and ill start working on the stats file. The stats file will only need to have three functions:
 
-- **write_stats_to_file**  needs tp write a human-readable summary report to a text file that includes dataset-level counts, genomic GC content, longest ORF details, and a per-ORF table with GC content, protein length, and codon usage.
+- **write_stats_to_file**  needs tp write a human-readable summary report to a text file that includes dataset-level counts, GC content, longest ORF details, and a per-ORF table with GC content, protein length, and codon usage.
 
 - **write_comparative_report** Write a human-readable side-by-side comparative report for two sequences.
 
