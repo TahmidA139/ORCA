@@ -125,9 +125,9 @@ def _draw_orf_map(
     ax.set_title(f"{accession}  —  {seq_len} bp", fontsize=10, fontweight="bold")
 
     # ── Strand labels ─────────────────────────────────────────────────────
-    ax.text(-seq_len * 0.01, 4, "+ strand", va="center", ha="right",
+    ax.text(-seq_len * 0.01, 4, "(+) strand", va="center", ha="right",
             fontsize=8, color="#444444", rotation=90)
-    ax.text(-seq_len * 0.01, 1, "− strand", va="center", ha="right",
+    ax.text(-seq_len * 0.01, 1, "(−) strand", va="center", ha="right",
             fontsize=8, color="#444444", rotation=90)
 
 
@@ -170,7 +170,6 @@ def plot_orf_map(
     plt.tight_layout()
     plt.savefig(output_path, dpi=150, bbox_inches="tight")
     plt.close()
-    print(f"[INFO] ORF map saved to: {output_path}")
 
 
 def plot_comparative_orf_map(
