@@ -198,3 +198,21 @@ def find_orfs(
     all_orfs = _apply_nesting(all_orfs, ignore_nested)
 
     return _build_outputs(all_orfs, start_codons)
+
+def find_nested(flat_list: list) -> list:
+    """Return the subset of ORFs that are nested inside another ORF."""
+    nested_orfs = []
+    for i, orf in enumerate(flat_list):
+        for j, other in enumerate(flat_list):
+            if i == j:
+                continue
+            if orf["strand"] != other["strand"]:
+                continue
+            if orf["frame"] != other["frame"]:
+                continue
+            if other["end"] is None:
+                continue
+            if other["start"] < orf["start"] < other["end"]:
+                nested_orfs.append(orf)
+                break
+    return nested_orfs
