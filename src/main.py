@@ -8,15 +8,9 @@ from src.input_lib.input_validate import run as validate_run, validate_start_cod
 from src.orf_finder_lib.orf_finder import find_orfs
 from src.orf_finder_lib.output_writer import write_combined_csv, print_summary
 from src.graphics_lib.graphics import plot_orf_map, plot_comparative_orf_map
-
-# ✅ YOUR IMPORTS (TOP LEVEL)
 from ORF_analysis import calculate_orf_stats, find_repeated_orfs
 from orf_stats import write_stats_to_file, write_comparative_report, write_comparative_csv
 
-
-# =========================================================
-# 🔬 PROCESS ONE SEQUENCE 
-# =========================================================
 def _run_single_sequence(
     accession,
     email,
@@ -47,9 +41,7 @@ def _run_single_sequence(
         print(f"[WARNING] No ORFs found for '{accession}'")
         return acc, clean_seq, nested, flat_list
 
-    # =====================================================
-    #ANALYSIS PART
-    # =====================================================
+
     flat_list = calculate_orf_stats(flat_list, clean_seq)
 
     repeats = find_repeated_orfs(flat_list)
@@ -61,10 +53,8 @@ def _run_single_sequence(
     else:
         print("None found")
 
-    # ✅ WRITE YOUR SUMMARY FILE
     write_stats_to_file(flat_list, filename=summary_txt)
 
-    # =====================================================
 
     return acc, clean_seq, nested, flat_list
 
@@ -133,9 +123,6 @@ def main():
         write_comparative_report(flat1, flat2, filename="output/comparison.txt")
         write_comparative_csv(flat1, flat2, filename="output/codon_comparison.csv")
 
-    # -------------------------------
-    # PLOTS (EXISTING)
-    # -------------------------------
     if comparative:
         plot_comparative_orf_map(
             flat1=flat1, seq_len1=len(seq1), acc1=acc1,
