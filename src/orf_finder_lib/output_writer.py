@@ -8,14 +8,6 @@ Purpose:
     Handles terminal summary printing and writing ORF tables (with extracted
     nucleotide sequences) to a single CSV file, optionally combining results
     from two sequences in comparative mode.
-
-Location:
-    src/orf_finder_lib/output_writer.py
-
-Public API
-----------
-    print_summary(nested, flat_list, label)
-    write_combined_csv(acc1, flat1, seq1, output_path, acc2, flat2, seq2)
 """
 
 from __future__ import annotations
@@ -27,13 +19,8 @@ from typing import List, Optional
 from src.orf_finder_lib.frame_scanner import extract_orf_sequence
 from src.orf_finder_lib.orf_finder import CSV_FIELDNAMES, find_nested
 
-# Fieldnames with the sequence column appended
 OUTPUT_FIELDNAMES: List[str] = CSV_FIELDNAMES + ["sequence (5'->3')"]
 
-
-# ---------------------------------------------------------------------------
-# Summary printing
-# ---------------------------------------------------------------------------
 
 def print_summary(nested: dict, flat_list: list, label: str = "") -> None:
     """Print a short summary of ORF counts to stdout."""
@@ -63,10 +50,6 @@ def print_summary(nested: dict, flat_list: list, label: str = "") -> None:
     print(f"  Nested ORFs detected        : {len(nested_found)}")
     print("-" * (20 + len(header)))
 
-
-# ---------------------------------------------------------------------------
-# CSV writing
-# ---------------------------------------------------------------------------
 
 def _write_sequence_block(
     fh,
