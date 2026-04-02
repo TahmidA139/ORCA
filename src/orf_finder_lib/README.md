@@ -1,7 +1,8 @@
-# `orf_finder_lib` — Module Reference
+# orf_finder_lib — Module Reference
 
 Detects Open Reading Frames (ORFs) across all six reading frames of a DNA sequence. Supports non-canonical start codons, nested ORF detection, and reverse-complement scanning.
 
+Library setup:
 ```
 src/orf_finder_lib/
 ├── frame_scanner.py   # Low-level sequence utilities and per-frame scanning
@@ -11,7 +12,7 @@ src/orf_finder_lib/
 
 ---
 
-## `orf_finder.py` 
+## orf_finder.py 
 
 `find_orfs` returns a 2-tuple: a nested dict organised by canonical/non-canonical start codon, and a flat list of all ORF records. Each record contains `orf_id`, `strand`, `start_codon`, `frame`, `start`, `end`, `length_nt`, and `is_nested`.
 
@@ -19,10 +20,17 @@ src/orf_finder_lib/
 
 ---
 
+### Outputs
 
-### Terminal summary (`print_summary`)
-
+The outputs for this module are a terminal output and a csv file. The CSV file defaults to output/orfs.csv if --output option is not used.
+For example the command:
 ```
+python -m src.main --accession NM_001301717 --email edecocke@charlotte.edu --min-length 75 --ignore-nested
+```
+**Would output this to the terminal:**
+```
+[ORCA] Processing sequence 1: NM_001301717
+[VALIDATION] Sequence is valid — 2191 bp ready for analysis.
 ----------  ORF Summary — Sequence 1 ----------
   Total ORFs found            : 9
   Forward strand (+)          : 3
@@ -31,9 +39,7 @@ src/orf_finder_lib/
   Nested ORFs detected        : 0
 ----------------------------------------------
 ```
-
-### CSV output (`write_combined_csv`)
-
+**CSV file**
 Each sequence block starts with the accession on its own row, followed by column headers and one row per ORF. In comparative mode the two blocks are separated by two blank rows. The `sequence (5'->3')` column always reads in the 5′→3′ direction regardless of strand.
 
 ```
