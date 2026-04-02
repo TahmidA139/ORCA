@@ -31,6 +31,7 @@ python -m src.main --accession NM_001301717 --email edecocke@charlotte.edu --min
 ```
 [ORCA] Processing sequence 1: NM_001301717
 [VALIDATION] Sequence is valid — 2191 bp ready for analysis.
+
 ----------  ORF Summary — Sequence 1 ----------
   Total ORFs found            : 9
   Forward strand (+)          : 3
