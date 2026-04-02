@@ -30,7 +30,8 @@ from src.input_lib.input_validate import run as validate_run, validate_start_cod
 from src.orf_finder_lib.orf_finder import find_orfs, CSV_FIELDNAMES
 from src.orf_finder_lib.output_writer import write_combined_csv, print_summary
 from src.graphics_lib.graphics import plot_orf_map, plot_comparative_orf_map
-from src.analysis_lib.orf_analysis import (calculate_orf_stats, find_repeated_orfs, write_stats_to_file, write_comparative_report, write_comparative_csv,)
+from src.analysis_lib.orf_analysis import calculate_orf_stats, find_repeated_orfs
+from src.analysis_lib.statistics_summary import write_stats_to_file, write_comparative_report, write_comparative_csv
 
 VALID_START_CODONS = {"ATG", "GTG", "TTG"}
 
