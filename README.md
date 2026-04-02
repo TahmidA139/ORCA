@@ -85,32 +85,6 @@ from start to finish in one command.
 # Full run with all options
 python -m src.main --accession NM_001301717 --email your_email@example.com --min-length 75 --ignore-nested
 ```
-### Full command with all options explained
-```bash
-python                        # run Python
-    -m src.main               # run main.py inside the src/ folder
-    --accession NM_001301717  # NCBI accession number of the DNA sequence to analyse
-    --email your_email@example.com  # your email address required by NCBI Entrez API
-    --min-length 75           # only report ORFs that are at least 75 base pairs long
-    --ignore-nested           # skip ORFs that are fully contained inside a longer ORF
-```
-**How main.py connects all modules:**
-```
-main.py
-  │
-  ├── input_validate.run()        accession number
-  │       │                    ──────────────────→  cleaned DNA sequence string
-  │       │
-  ├── ORF_finder.find_all_orfs()  cleaned DNA sequence
-  │       │                    ──────────────────→  list of ORF dictionaries + orfs.csv
-  │       │
-  ├── ORF_analysis.analyse_orfs() list of ORF dictionaries
-  │       │                    ──────────────────→  repeat results + orf_analysis.csv
-  │       │
-  └── statistics_summary.summarise() ORFs + analysis results
-                               ──────────────────→  summary .txt + plots
-```
-
 ---
 
 ### 1. input_validate.py
