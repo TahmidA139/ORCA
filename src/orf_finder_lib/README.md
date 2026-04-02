@@ -12,18 +12,11 @@ src/orf_finder_lib/
 
 ---
 
-## orf_finder.py 
-
-`find_orfs` returns a 2-tuple: a nested dict organised by canonical/non-canonical start codon, and a flat list of all ORF records. Each record contains `orf_id`, `strand`, `start_codon`, `frame`, `start`, `end`, `length_nt`, and `is_nested`.
-
-`find_nested(flat_list)` returns the subset of ORFs fully contained within another ORF on the same strand and frame.
-
----
-
 ### Outputs
 
 The outputs for this module are a terminal output and a csv file. The CSV file defaults to output/orfs.csv if --output option is not used.
-For example the command:
+
+**For example the command:**
 ```
 python -m src.main --accession NM_001301717 --email edecocke@charlotte.edu --min-length 75 --ignore-nested
 ```
@@ -41,6 +34,7 @@ python -m src.main --accession NM_001301717 --email edecocke@charlotte.edu --min
 ----------------------------------------------
 ```
 **CSV file**
+
 Each sequence block starts with the accession on its own row, followed by column headers and one row per ORF. In comparative mode the two blocks are separated by two blank rows. The `sequence (5'->3')` column always reads in the 5′→3′ direction regardless of strand.
 
 ```
