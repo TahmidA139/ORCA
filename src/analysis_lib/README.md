@@ -1,97 +1,186 @@
 # ORF Analysis Module
 
-This Python module provides basic tools for analyzing Open Reading Frames (ORFs). It focuses on identifying repeated ORFs and calculating simple similarity scores between ORF sequences.
+## Overview
 
-## nicoles commment:
-**Note on calculate_similarity_scores:**
-- We are dropping the position-by-position similarity score comparison between **every ORF pair**. The reason is that comparing every ORF to every other ORF scales very poorly. Like it means for a sequence with possibly hundreds of ORFs this becomes thousands of comparisons that are also not biologically meaningful without lotsssss more functions and analysis.
-- it would still be nice to have a similarity score between the sequnece 1 and sequence 2. (only two sequences so its easier than doing all the orfs) that way your hard work is not completely lost you are just doing less work and its more biologically meaninful.
+This Python module provides tools for analyzing Open Reading Frames (ORFs). It focuses on identifying repeated ORFs and computing biologically meaningful statistics for each ORF, such as GC content and protein length.
 
-**Functions that need to be in this file:**
-- **find_repeated_orfs** — you have this! you do need to add list of ORF dicts instead of raw sequences tho 
-- **calculate_orf_stats** — Loops over every ORF and computes per-ORF statistics (GC content, protein length). Calls the helper functions below to do the actual math (helpers keep functions less than 40 lines)
-- **extract_sequence** — pulls the actual nucleotide sequence of each ORF out of the full DNA string. Needs to handle both forward and reverse strand ORFs separately
-- **gc_content** — calculates what percentage of a sequence is G or C bases. Called by calculate_orf_stats for each ORF
-- **protein_length** — determines how many amino acids the ORF produces. 
-
-
-If you want me to do this part and then you do the stats file which will legit just be to make the two txt summary output files with the comparison let me know. If you want to keep your part let me know and ill start working on the stats file. The stats file will only need to have three functions:
-
-- **write_stats_to_file**  needs tp write a human-readable summary report to a text file that includes dataset-level counts, GC content, longest ORF details, and a per-ORF table with GC content, protein length, and codon usage.
-
-- **write_comparative_report** Write a human-readable side-by-side comparative report for two sequences.
-
-- **write_comparative_csv** Write a codon-usage delta table to a CSV file this will be used for the grapghics part which will be our last module!!
-
-## Features
-
-- Find Repeated ORFs
-  - Identifies ORF sequences that appear more than once in a list.
-  - Returns a dictionary with ORFs and their counts.
-
-- Calculate Similarity Scores
-  - Compares each ORF to every other ORF.
-  - Computes a similarity score based on matching characters at the same positions.
-  - Uses the length of the shorter sequence for comparison.
-
-## Functions
-
-### find_repeated_orfs(orfs)
-
-Input:
-- orfs (list): A list of ORF sequences (strings)
-
-Output:
-- dict: ORFs that appear more than once, with their counts
-
-Example:
-orfs = ["ATGAAA", "ATGAAA", "ATGCCA", "ATGAAA"]
-print(find_repeated_orfs(orfs))
-
-Output:
-{'ATGAAA': 3}
+The module is designed to integrate into the ORCA pipeline and supports downstream reporting and comparative analysis.
 
 ---
 
-### calculate_similarity_scores(orfs)
+## Important Update on Similarity Scoring
 
-Input:
-- orfs (list): A list of ORF sequences (strings)
+The original implementation included pairwise similarity comparisons between every ORF. This approach was removed because:
 
-Output:
-- dict: Pairwise similarity scores using index pairs as keys
+* It scales poorly (O(n²) comparisons for large ORF sets)
+* It is not biologically meaningful without proper alignment methods
+* It introduces unnecessary computational overhead
 
-How it works:
-- Compares each pair of sequences
-- Counts matching positions
-- Divides by the length of the shorter sequence
+Instead, similarity analysis is simplified:
 
-Example:
-orfs = ["ATGAAA", "ATGAAA", "ATGCCA", "ATGAAA"]
-print(calculate_similarity_scores(orfs))
+* A similarity score can be computed **between two sequences only**
+* This allows meaningful comparison between datasets without excessive computation
 
-Output:
-{
- (0, 1): 1.0,
- (0, 2): 0.6666666666666666,
- (0, 3): 1.0,
- (1, 2): 0.6666666666666666,
- (1, 3): 1.0,
- (2, 3): 0.6666666666666666
-}
+---
 
-## Notes
+## Core Functions
 
-- Similarity is position-based and does not perform sequence alignment.
-- Scores range from 0.0 (no matches) to 1.0 (identical sequences).
-- The function assumes sequences are non-empty; empty sequences may cause errors.
+### 1. `find_repeated_orfs(orfs)`
+
+Identifies ORF sequences that appear more than once.
+
+**Input:**
+
+* `orfs` (list): A list of ORF dictionaries. Each ORF must include a `"sequence"` field.
+
+**Output:**
+
+* `dict`: Repeated ORF sequences and their counts
+
+**Example:**
+
+```python
+orfs = [
+    {"sequence": "ATGAAA"},
+    {"sequence": "ATGAAA"},
+    {"sequence": "ATGCCA"},
+    {"sequence": "ATGAAA"}
+]
+
+print(find_repeated_orfs(orfs))
+```
+
+**Output:**
+
+```
+{'ATGAAA': 3}
+```
+
+---
+
+### 2. `calculate_orf_stats(orfs, dna_sequence)`
+
+Computes per-ORF statistics.
+
+For each ORF, this function:
+
+* Extracts the nucleotide sequence
+* Calculates GC content
+* Calculates protein length
+
+**Input:**
+
+* `orfs` (list): List of ORF dictionaries with `start`, `end`, and `strand`
+* `dna_sequence` (str): Full DNA sequence
+
+**Output:**
+
+* Updated list of ORFs with:
+
+  * `"sequence"`
+  * `"gc_content"`
+  * `"protein_length"`
+
+---
+
+### 3. `extract_sequence(dna, start, end, strand)`
+
+Extracts the nucleotide sequence for an ORF.
+
+* Handles both forward (`+`) and reverse (`-`) strands
+* Reverse strand returns reverse complement
+
+---
+
+### 4. `gc_content(sequence)`
+
+Calculates the percentage of G and C bases in a sequence.
+
+**Output:**
+
+* Float representing GC percentage
+
+---
+
+### 5. `protein_length(sequence)`
+
+Calculates the number of amino acids produced by an ORF.
+
+**Logic:**
+
+* Length of sequence divided by 3 (codon size)
+
+---
+
+### 6. (Optional) `calculate_similarity(seq1, seq2)`
+
+Computes similarity between **two sequences only**.
+
+**How it works:**
+
+* Compares matching positions
+* Uses length of shorter sequence
+* Returns value between 0.0 and 1.0
+
+---
+
+## Additional Stats Module (Separate File)
+
+The following functions are implemented in the stats module:
+
+### `write_stats_to_file`
+
+Writes a summary report including:
+
+* Total ORFs
+* Average GC content
+* Longest ORF
+* Per-ORF table
+* Codon usage
+
+---
+
+### `write_comparative_report`
+
+Generates a human-readable comparison between two datasets.
+
+---
+
+### `write_comparative_csv`
+
+Outputs a codon usage comparison table in CSV format for visualization.
+
+---
+
+## Features
+
+* Detect repeated ORFs
+* Compute GC content and protein length
+* Extract sequences from forward and reverse strands
+* Generate dataset-level and per-ORF statistics
+* Support comparative analysis between two sequences
+
+---
 
 ## Requirements
 
-- Python 3.x
+* Python 3.x
+
+---
 
 ## Usage
 
-Run the script directly:
+Run as part of the ORCA pipeline:
 
-python ORF_analysis.py
+```bash
+python main.py --accession <ACCESSION> --email <YOUR_EMAIL>
+```
+
+---
+
+## Notes
+
+* ORFs must include `start`, `end`, and `strand` fields
+* Sequence extraction assumes valid DNA input
+* No sequence alignment is performed for similarity calculations
+* Designed for integration with downstream reporting and visualization modules
