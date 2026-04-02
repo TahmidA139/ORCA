@@ -4,18 +4,8 @@
 orf_finder.py
 
 Purpose:
-    Public API for ORF detection across all six reading frames.
+    ORF detection across all six reading frames.
     Low-level scanning helpers live in frame_scanner.py.
-
-Public API
-----------
-    find_orfs(dna_sequence, start_codons, min_length, ignore_nested)
-        → (nested_dict, flat_list)
-    find_nested(flat_list)
-        → list of nested ORF records
-
-    CSV_FIELDNAMES : list of str
-        Column order for CSV export (used by output_writer.py).
 """
 
 from __future__ import annotations
@@ -27,10 +17,6 @@ from src.orf_finder_lib.frame_scanner import (
     _mark_nested,
     scan_frame,
 )
-
-# ---------------------------------------------------------------------------
-# Constants
-# ---------------------------------------------------------------------------
 
 ALL_START_CODONS:    List[str] = ["ATG", "GTG", "TTG"]
 STOP_CODONS:         List[str] = ["TAA", "TAG", "TGA"]
@@ -46,11 +32,6 @@ CSV_FIELDNAMES: List[str] = [
     "frame", "start", "end", "length_nt",
 ]
 
-
-# ---------------------------------------------------------------------------
-# Step 1 — scan all six frames
-# ---------------------------------------------------------------------------
-
 def _scan_all_frames(
     dna_sequence: str,
     start_codons: List[str],
@@ -65,11 +46,6 @@ def _scan_all_frames(
         orfs.extend(scan_frame(rev_comp,     frame, start_codons, min_length, "-", seq_len))
     return orfs
 
-
-# ---------------------------------------------------------------------------
-# Step 2 — nesting filter
-# ---------------------------------------------------------------------------
-
 def _apply_nesting(
     all_orfs:      List[Dict[str, Any]],
     ignore_nested: bool,
@@ -79,11 +55,6 @@ def _apply_nesting(
     if ignore_nested:
         all_orfs = [o for o in all_orfs if not o["is_nested"]]
     return all_orfs
-
-
-# ---------------------------------------------------------------------------
-# Step 3 — build the nested output dictionary
-# ---------------------------------------------------------------------------
 
 def _make_nested_dict(
     active_noncanonical: List[str],
@@ -141,11 +112,6 @@ def _build_outputs(
         flat_list.append(flat_record)
 
     return nested_dict, flat_list
-
-
-# ---------------------------------------------------------------------------
-# Public API
-# ---------------------------------------------------------------------------
 
 def find_orfs(
     dna_sequence:  str,
