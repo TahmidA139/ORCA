@@ -220,3 +220,31 @@ def main() -> None:
         
 if __name__ == "__main__":
     main()
+
+from orf_finder import find_all_orfs
+from ORF_analysis import calculate_orf_stats, find_repeated_orfs
+from orf_stats import write_stats_to_file, write_comparative_report, write_comparative_csv
+
+
+def main():
+    dna = "ATGAAATAGATGCCCTAAATGAAATGA"
+
+    # Find ORFs
+    orfs = find_all_orfs(dna)
+
+    # Add stats
+    orfs = calculate_orf_stats(orfs, dna)
+
+    # Repeats
+    repeats = find_repeated_orfs(orfs)
+
+    print("Repeated ORFs:", repeats)
+
+    # Write outputs
+    write_stats_to_file(orfs)
+    write_comparative_report(orfs, orfs)
+    write_comparative_csv(orfs, orfs)
+
+
+if __name__ == "__main__":
+    main()
