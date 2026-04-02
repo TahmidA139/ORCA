@@ -323,20 +323,6 @@ Comparative mode — two accessions side by side:
 python -m src.main --accession NM_001301717 --accession2 NM_001301718.2 --email you@example.com
 ```
 
-## Algorithm Description
-
-### Input Validation (`input_validate.py`)
-need to write 
-
-### ORF Detection (`orf_finder.py`)
-need to write 
-
-### ORF Analysis (`orf_analysis.py`)
-need to write 
-
-### Statistics Output (`statistics_summary.py`)
-need to write 
-
 ## References
 - NEEDDDD TO ADD STUFF HERE AS WELL
 - NCBI Entrez API: https://www.ncbi.nlm.nih.gov/books/NBK25499/
