@@ -49,7 +49,7 @@ FRAME_LABELS = {
 
 
 
-def _draw_orf_map(
+def draw_orf_map(
     ax,
     flat_list: list,
     seq_len:   int,
@@ -120,7 +120,7 @@ def _draw_orf_map(
             fontsize=8, color="#444444", rotation=90)
 
 
-def _make_legend() -> list:
+def make_legend() -> list:
     """Return legend handles for start codon colors."""
     return [
         mpatches.Patch(color=color, label=codon)
@@ -139,8 +139,8 @@ def plot_orf_map(
 
     """
     fig, ax = plt.subplots(figsize=(14, 4))
-    _draw_orf_map(ax, flat_list, seq_len, accession)
-    fig.legend(handles=_make_legend(), title="Start codon",
+    draw_orf_map(ax, flat_list, seq_len, accession)
+    fig.legend(handles=make_legend(), title="Start codon",
                loc="upper right", fontsize=8, title_fontsize=8)
     plt.tight_layout()
     plt.savefig(output_path, dpi=150, bbox_inches="tight")
@@ -165,10 +165,10 @@ def plot_comparative_orf_map(
     """
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 7), sharex=False)
 
-    _draw_orf_map(ax1, flat1, seq_len1, acc1)
-    _draw_orf_map(ax2, flat2, seq_len2, acc2)
+    draw_orf_map(ax1, flat1, seq_len1, acc1)
+    draw_orf_map(ax2, flat2, seq_len2, acc2)
 
-    fig.legend(handles=_make_legend(), title="Start codon",
+    fig.legend(handles=make_legend(), title="Start codon",
                loc="upper right", fontsize=8, title_fontsize=8)
     fig.suptitle("Comparative ORF Map", fontsize=12, fontweight="bold", y=1.01)
 
