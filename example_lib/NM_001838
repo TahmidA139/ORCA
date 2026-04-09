@@ -1,7 +1,7 @@
-ACCESSION   NM_001838
-VERSION     NM_001838.4
+#ACCESSION   NM_001838
+#VERSION     NM_001838.4
 
-ORIGIN      
+#ORIGIN      
         1 agacaggggt agtgcgaggc cgggcacagc cttcctgtgt ggttttaccg cccagagagc
        61 gtcatggacc tggggaaacc aatgaaaagc gtgctggtgg tggctctcct tgtcattttc
       121 caggtatgcc tgtgtcaaga tgaggtcacg gacgattaca tcggagacaa caccacagtg
