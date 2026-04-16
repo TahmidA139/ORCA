@@ -21,7 +21,6 @@ The pipeline accepts an NCBI accession number and email as inputs, fetches the D
 - Writes all results to the `output/` folder as .CSV and plain-text reports
 
 ## Project Structure
-
 ```
 ORCA/
 ├── README.md                         # Tahmid Anwar
@@ -55,6 +54,11 @@ ORCA/
     ├── example_output.fasta
     └── example_run.txt
 ```
+Flowchart: 
+<p align="center">
+  <img src="images/flowchart.png" alt="flowchart" width="350"/>
+</p>
+
 ## Installation
 
 ### Dependency Requirements
