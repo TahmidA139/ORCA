@@ -6,7 +6,7 @@
 # Sequences are fetched automatically — no local files needed.
 #
 # Usage:
-#   bash run_test.sh <your_email@example.com>
+#   bash example_lib/run_test.sh youremail@gmail.com
 #
 # Requirements:
 #   conda activate ORCA        (see README for setup instructions)
