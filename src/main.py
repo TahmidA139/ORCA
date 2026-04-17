@@ -29,7 +29,7 @@ import sys
 from src.input_lib.input_validate import run as validate_run, validate_start_codons
 from src.orf_finder_lib.orf_finder import find_orfs, CSV_FIELDNAMES
 from src.orf_finder_lib.output_writer import write_combined_csv, print_summary
-from src.graphics_lib.graphics import plot_orf_map, plot_comparative_orf_map
+from src.graphics_lib.graphics import plot_orf_map, plot_comparative_orf_map, plot_codon_usage_comparison
 from src.analysis_lib.orf_analysis import calculate_orf_stats, find_repeated_orfs
 from src.analysis_lib.statistics_summary import write_stats_to_file, write_comparative_report, write_comparative_csv
 
@@ -217,6 +217,11 @@ def main() -> None:
             flat1=flat1, seq_len1=len(seq1), acc1=acc1,
             flat2=flat2, seq_len2=len(seq2), acc2=acc2,
             output_path="output/orf_map.png",
+        )
+        plot_codon_usage_comparison(
+            seq1=seq1, acc1=acc1,
+            seq2=seq2, acc2=acc2,
+            output_path="output/codon_usage_comparison.png",
         )
     else:
         plot_orf_map(
