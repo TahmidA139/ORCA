@@ -16,7 +16,7 @@ import os
 from typing import List, Optional
 
 from src.orf_finder_lib.frame_scanner import extract_orf_sequence
-from src.orf_finder_lib.orf_finder import CSV_FIELDNAMES, find_nested
+from src.orf_finder_lib.orf_finder import CSV_FIELDNAMES
 
 OUTPUT_FIELDNAMES: List[str] = CSV_FIELDNAMES + ["sequence (5'->3')"]
 
@@ -45,8 +45,6 @@ def print_summary(nested: dict, flat_list: list, label: str = "") -> None:
             if n > 0:
                 print(f"    {sc}                       : {n}")
 
-    nested_found = find_nested(flat_list)
-    print(f"  Nested ORFs detected        : {len(nested_found)}")
     print("-" * (20 + len(header)))
 
 
@@ -93,5 +91,3 @@ def write_combined_csv(
         if acc2 is not None and flat2 is not None and seq2 is not None:
             fh.write("\n\n")
             _write_sequence_block(fh, writer, acc2, flat2, seq2)
-
-    
