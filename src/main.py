@@ -3,6 +3,8 @@
 """
 main.py
 
+Everyone has contributed to this file
+
 Purpose:
     Main driver for the ORCA (ORF Recognition and Comparative Analysis)
     pipeline.
