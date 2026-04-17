@@ -413,4 +413,3 @@ def plot_codon_usage_comparison(
     plt.savefig(output_path, dpi=150, bbox_inches="tight")
     plt.close()
     print(f"[INFO] Codon usage comparison saved to: {output_path}")
-
