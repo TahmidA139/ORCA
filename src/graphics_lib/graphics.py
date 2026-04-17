@@ -328,12 +328,11 @@ def plot_codon_usage_comparison(
         if aa not in ("Stop", "Met", "Trp"):
             aa_codons[aa].append(codon)
 
-    # Sort codons within each amino acid alphabetically for consistency
     for aa in aa_codons:
         aa_codons[aa].sort()
 
     codon_list: list[str] = []
-    aa_boundaries: list[tuple[int, int, str]] = []   # (col_start, col_end, aa_name)
+    aa_boundaries: list[tuple[int, int, str]] = []  # (col_start, col_end, aa_name)
     pos = 0
     for aa in _AA_ORDER:
         codons = aa_codons[aa]
@@ -350,16 +349,25 @@ def plot_codon_usage_comparison(
         [rscu2.get(c, 0.0) for c in codon_list],
     ])
 
-    # ── Plot ─────────────────────────────────────────────────────────────
-    fig, ax = plt.subplots(figsize=(22, 2.8))
+    # ── Figure layout: extra bottom space for colorbar ────────────────────
+    fig, ax = plt.subplots(figsize=(22, 3.2))
+    fig.subplots_adjust(top=0.72, bottom=0.38, left=0.07, right=0.97)
 
     im = ax.imshow(
         data,
         aspect = "auto",
-        cmap   = "RdYlBu_r",   # red = high RSCU, blue = low
+        cmap   = "RdYlBu_r",   # red = high RSCU (preferred), blue = low (avoided)
         vmin   = 0.0,
         vmax   = 3.0,
     )
+
+    # ── Black horizontal line separating the two sequences ────────────────
+    ax.axhline(y=0.5, color="black", linewidth=2.5, zorder=4)
+
+    # ── White vertical lines separating amino acid groups ─────────────────
+    for col_start, _, _ in aa_boundaries:
+        if col_start > 0:
+            ax.axvline(x=col_start - 0.5, color="white", linewidth=2.5, zorder=3)
 
     # ── Y axis: sequence names ────────────────────────────────────────────
     ax.set_yticks([0, 1])
@@ -371,42 +379,38 @@ def plot_codon_usage_comparison(
     ax.set_xticklabels(codon_list, rotation=90, fontsize=6.5, family="monospace")
     ax.tick_params(axis="x", length=2, pad=1)
 
-    # ── Vertical dividers between amino acid groups ───────────────────────
-    for col_start, _, _ in aa_boundaries:
-        if col_start > 0:
-            ax.axvline(x=col_start - 0.5, color="white", linewidth=1.8, zorder=3)
-
     # ── Top x axis: amino acid group labels ───────────────────────────────
-    ax2 = ax.twiny()
-    ax2.set_xlim(ax.get_xlim())
-    aa_mid   = [(s + e - 1) / 2          for s, e, _ in aa_boundaries]
-    aa_names = [aa                         for _, _, aa in aa_boundaries]
-    ax2.set_xticks(aa_mid)
-    ax2.set_xticklabels(aa_names, fontsize=7.5, fontweight="bold", rotation=45, ha="left")
-    ax2.tick_params(top=False, pad=1)
+    ax_top = ax.twiny()
+    ax_top.set_xlim(ax.get_xlim())
+    aa_mid   = [(s + e - 1) / 2 for s, e, _ in aa_boundaries]
+    aa_names = [aa               for _, _, aa in aa_boundaries]
+    ax_top.set_xticks(aa_mid)
+    ax_top.set_xticklabels(aa_names, fontsize=8, fontweight="bold", rotation=45, ha="left")
+    ax_top.tick_params(top=False, pad=2)
 
-    # ── Colour bar ────────────────────────────────────────────────────────
-    cbar = fig.colorbar(
-        im, ax=ax,
-        orientation="vertical",
-        fraction=0.018,
-        pad=0.01,
-        shrink=0.9,
-    )
-    cbar.set_label("RSCU", fontsize=8)
-    cbar.ax.tick_params(labelsize=7)
-    # Mark equal-usage baseline
-    cbar.ax.axhline(y=1.0, color="black", linewidth=1.2, linestyle="--")
-    cbar.ax.text(3.6, 1.0, "1.0", va="center", ha="left", fontsize=6.5)
-
+    # ── Title ─────────────────────────────────────────────────────────────
     ax.set_title(
         f"Codon Usage Bias  —  {acc1}  vs  {acc2}  (RSCU)",
         fontsize=10,
         fontweight="bold",
-        pad=28,          # leave room for top AA labels
+        pad=30,
     )
 
-    plt.tight_layout()
+    # ── Horizontal colorbar below the heatmap ─────────────────────────────
+    cbar_ax = fig.add_axes([0.15, 0.10, 0.70, 0.07])   # [left, bottom, width, height]
+    cbar = fig.colorbar(im, cax=cbar_ax, orientation="horizontal")
+    cbar.set_label("RSCU  (1.0 = equal synonymous codon usage)", fontsize=8, labelpad=4)
+    cbar.ax.tick_params(labelsize=7)
+
+    # Dashed line at RSCU = 1.0 (equal usage baseline); colorbar data range is [0, 3]
+    cbar.ax.axvline(x=1.0, color="black", linewidth=1.5, linestyle="--", zorder=5)
+    cbar.ax.text(
+        1.0, 1.7, "1.0",
+        ha="center", va="bottom", fontsize=7, fontweight="bold",
+        color="black", transform=cbar.ax.get_xaxis_transform(),
+    )
+
     plt.savefig(output_path, dpi=150, bbox_inches="tight")
     plt.close()
     print(f"[INFO] Codon usage comparison saved to: {output_path}")
+
