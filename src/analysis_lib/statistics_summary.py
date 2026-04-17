@@ -201,5 +201,3 @@ def write_comparative_csv(
             c1 = codons1.get(codon, 0)
             c2 = codons2.get(codon, 0)
             writer.writerow([codon, c1, c2, c1 - c2])
-
-    
