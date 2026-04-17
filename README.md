@@ -36,20 +36,18 @@ ORCA/
 │   ├── orf_finder_lib/                # Nicole Decocker
 │   │   ├── __init__.py
 │   │   └── frame_scanner.py   
-│   │   └── orf_finder.py
-│   │   └── output_writer.py                
+│   │   └── orf_finder.py          
 │   │
 │   ├── analysis_lib/                  # Amanda Yaworsky
 │   │   ├── __init__.py
 │   │   └── orf_analysis.py            
 │   │   └── statistics_summary.py                                    
-│   │   └── genetic_inference.py       # Tahmid Anwar
 │   │
 │   ├── graphics_lib/                  # Nicole Decocker 
 │   │   ├── __init__.py
 │   │   └── graphics.py                                        
 │
-└── examples/                          # Amanda Yaworsky
+└── examples/                          # Amanda Yaworsky + Tahmid Anwar + Nicole Decocker
     ├── example_output.fasta
     └── example_run.txt
 ```
