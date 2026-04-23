@@ -216,15 +216,17 @@ plots/
 This project is licensed under the GNU GPL v2.1. Chosen for open collaboration, ease of edits, and public use.
 
 ## Authors
-
 **Amanda Yaworsky**
 - Student ID: 801489950
+- GitHub username: amandayaworsky
 - Email: ayaworsk@charlotte.edu
 
 **Erin Nicole Decocker**
 - Student ID: 801442694
+- GitHub username: edecocke-uncc   
 - Email: edecocke@charlotte.edu
 
 **Tahmid Anwar**
 - Student ID: 801501080
+- GitHub username: TahmidA139  
 - Email: tanwar@charlotte.edu
