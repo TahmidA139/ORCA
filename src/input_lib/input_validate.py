@@ -182,7 +182,6 @@ def load_fasta_from_file(filepath: str) -> tuple[str, str] | tuple[None, None]:
     # Step 5 — single record confirmed, return it
     record = records[0]
     sequence = str(record.seq)
-    print(f"[INFO] Loaded '{record.id}' from '{filepath}' — {len(sequence)} bp")
     return record.id, sequence
 
 
@@ -210,7 +209,6 @@ def validate_dna_sequence(sequence: str) -> tuple[bool, str]:
 
     # Step 3 — flag and remove invalid characters
     if invalid_chars:
-        print(f"[VALIDATION] Invalid characters found and removed: {invalid_chars}")
         sequence = re.sub(r"[^ATGCRYSWKMBDHVN]", "", sequence)
 
     # Step 4 — verify the cleaned sequence is long enough for ORF analysis
@@ -288,7 +286,6 @@ def write_combined_cleaned_fasta(
     ]
     with open(output_path, "w") as fh:
         SeqIO.write(records, fh, "fasta")
-    print(f"[INFO] Combined cleaned FASTA (both sequences) written to: {output_path}")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -403,37 +400,28 @@ def run(
     # Email is valid — set it for all Entrez queries
     # NCBI requires this to identify who is making the request
     Entrez.email = email.strip()
-    print(f"[INFO] NCBI email set to: {Entrez.email}")
 
     # ── Step 1 — fetch/load and validate sequence 1 ──────────────────────────
-          f"{'(from file) ' + fasta_file if fasta_file else accession}")
     acc1, seq1 = _fetch_and_validate_one(accession, output_fasta, fasta_file)
     if acc1 is None:
         return None, None, None, None
 
     # ── Step 2 — fetch/load and validate sequence 2 (if provided) ────────────
     if accession2 or fasta_file2:
-        label2 = ('(from file) ' + fasta_file2) if fasta_file2 else accession2
-        print(f"\n[INFO] Processing sequence 2: {label2}")
         acc2, seq2 = _fetch_and_validate_one(
             accession2 or "",
             output_fasta2,
             fasta_file2,
         )
         if acc2 is None:
-            print("[WARNING] Sequence 2 failed. Continuing with sequence 1 only.")
             return acc1, seq1, None, None
 
-        # ── Write both cleaned sequences into a single combined FASTA file ────
-        # This is written in addition to the two individual cleaned FASTAs so
-        # the user always has both a per-sequence file and a combined file.
         write_combined_cleaned_fasta(
             clean_seq1=seq1, accession1=acc1,
             clean_seq2=seq2, accession2=acc2,
             output_path="output/cleaned_sequences.fasta",
         )
 
-        print(f"\n[INFO] Both sequences ready for comparative analysis.")
         return acc1, seq1, acc2, seq2
 
     # Single sequence mode — return None for the second sequence slots
