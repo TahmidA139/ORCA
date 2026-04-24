@@ -82,7 +82,7 @@ def _run_single_sequence(
     (None, None, None, None) on failure.
     """
     # 1. Fetch/load and validate
-    acc, clean_seq = validate_run(accession, email, fasta_file=fasta_file)
+    acc, clean_seq, _, _ = validate_run(accession, email, fasta_file=fasta_file)
     if clean_seq is None:
         src = f"file '{fasta_file}'" if fasta_file else f"accession '{accession}'"
         print(f"[ERROR] Pipeline failed for {src}.")
