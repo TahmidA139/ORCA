@@ -406,7 +406,6 @@ def run(
     print(f"[INFO] NCBI email set to: {Entrez.email}")
 
     # ── Step 1 — fetch/load and validate sequence 1 ──────────────────────────
-    print(f"\n[INFO] Processing sequence 1: "
           f"{'(from file) ' + fasta_file if fasta_file else accession}")
     acc1, seq1 = _fetch_and_validate_one(accession, output_fasta, fasta_file)
     if acc1 is None:
