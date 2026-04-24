@@ -1,0 +1,293 @@
+FLOWCHARTS: ORCA – ORF Recognition and Comparative Annotator
+=============================================================
+
+These flowcharts describe the program's logic using text-based diagrams.
+They are intended to be converted into graphical flowcharts for the final
+presentation.
+
+
+FLOWCHART 1: Single-Sequence Pipeline
+---------------------------------------
+
+    [Start]
+       |
+       v
+    [Parse CLI arguments]
+    [--accession, --email, --min-length, --start-codons, --output]
+       |
+       v
+    [Validate email format]
+       |
+       v
+    [Email valid?]
+       /       \
+     Yes        No
+      |          |
+      |          v
+      |    [Print error and exit]
+      |
+      v
+    [Set NCBI Entrez email]
+       |
+       v
+    [Fetch FASTA from NCBI using accession]
+       |
+       v
+    [Fetch successful?]
+       /          \
+     Yes           No
+      |             |
+      |             v
+      |       [Print error and exit]
+      |
+      v
+    [Validate and clean DNA sequence]
+    [Remove whitespace, digits, non-IUPAC characters]
+       |
+       v
+    [Sequence valid?]
+       /          \
+     Yes           No
+      |             |
+      |             v
+      |       [Print error and exit]
+      |
+      v
+    [Write cleaned FASTA to output/cleaned_sequence.fasta]
+       |
+       v
+    [Validate start codons]
+    [Check --start-codons against ATG, GTG, TTG]
+       |
+       v
+    [Scan all six reading frames]
+    [+1, +2, +3, -1, -2, -3]
+       |
+       v
+    [Find all ORFs above --min-length]
+       |
+       v
+    [Any ORFs found?]
+       /          \
+     Yes           No
+      |             |
+      |             v
+      |       [Print warning]
+      |       [No output files written]
+      |             |
+      +------+------+
+             |
+             v
+    [Print terminal ORF summary]
+    [Total, forward, reverse, canonical, non-canonical counts]
+             |
+             v
+    [Write ORF results to output/orfs.csv]
+             |
+             v
+    [Generate ORF map plot]
+    [Save to output/orf_map.png]
+             |
+             v
+    [Calculate per-ORF statistics]
+    [GC content, protein length, nucleotide sequence]
+             |
+             v
+    [Detect repeated ORFs]
+             |
+             v
+    [Write human-readable summary to output/orf_summary.txt]
+             |
+             v
+          [Done]
+
+
+FLOWCHART 2: Two-Sequence Comparative Pipeline
+------------------------------------------------
+
+    [Start]
+       |
+       v
+    [Parse CLI arguments]
+    [--accession, --accession2, --email, --min-length, --start-codons, --output]
+       |
+       v
+    [Validate email format]
+       |
+       v
+    [Email valid?]
+       /       \
+     Yes        No
+      |          |
+      |          v
+      |    [Print error and exit]
+      |
+      v
+    [Set NCBI Entrez email]
+       |
+       v
+    [--- SEQUENCE 1 ---]
+       |
+       v
+    [Fetch FASTA from NCBI using --accession]
+       |
+       v
+    [Fetch successful?]
+       /          \
+     Yes           No
+      |             |
+      |             v
+      |       [Print error and exit]
+      |
+      v
+    [Validate and clean sequence 1]
+       |
+       v
+    [Write cleaned FASTA to output/cleaned_sequence.fasta]
+       |
+       v
+    [--- SEQUENCE 2 ---]
+       |
+       v
+    [Fetch FASTA from NCBI using --accession2]
+       |
+       v
+    [Fetch successful?]
+       /          \
+     Yes           No
+      |             |
+      |             v
+      |       [Print warning]
+      |       [Continue with sequence 1 only]
+      |
+      v
+    [Validate and clean sequence 2]
+       |
+       v
+    [Write cleaned FASTA to output/cleaned_sequence_2.fasta]
+       |
+       v
+    [--- ORF DETECTION (both sequences) ---]
+       |
+       +------------------------------+
+       |                              |
+       v                              v
+    [Scan all six frames         [Scan all six frames
+     for sequence 1]              for sequence 2]
+    [Find ORFs above              [Find ORFs above
+     --min-length]                 --min-length]
+       |                              |
+       v                              v
+    [Print terminal summary      [Print terminal summary
+     for sequence 1]              for sequence 2]
+       |                              |
+       +----------+-------------------+
+                  |
+                  v
+    [Write combined ORF results to output/orfs.csv]
+    [Both sequences included with accession labels]
+                  |
+                  v
+    [Generate comparative ORF map plot]
+    [Both sequences side-by-side]
+    [Save to output/orf_map.png]
+                  |
+                  v
+    [Generate codon usage comparison plot]
+    [Save to output/codon_usage_comparison.png]
+                  |
+                  v
+    [Calculate per-ORF statistics for sequence 1]
+    [GC content, protein length, nucleotide sequence]
+                  |
+                  v
+    [Detect repeated ORFs in sequence 1]
+                  |
+                  v
+    [Write summary to output/orf_summary.txt]
+                  |
+                  v
+    [Calculate per-ORF statistics for sequence 2]
+                  |
+                  v
+    [Detect repeated ORFs in sequence 2]
+                  |
+                  v
+    [Write summary to output/orf_summary_seq2.txt]
+                  |
+                  v
+    [Write comparative report]
+    [Side-by-side ORF count, GC, length stats]
+    [Save to output/comparison.txt]
+                  |
+                  v
+    [Write comparative codon CSV]
+    [Save to output/codon_comparison.csv]
+                  |
+                  v
+               [Done]
+
+
+FLOWCHART 3: Six-Frame ORF Scanner
+-------------------------------------
+
+    [Start: receive cleaned DNA sequence, start codons, min length]
+       |
+       v
+    [Compute reverse complement of sequence]
+       |
+       v
+    [For each frame in [0, 1, 2]:]
+       |
+       v
+    [Slice sequence starting at frame offset]
+    [Reshape into array of 3-character codons using NumPy]
+       |
+       v
+    [Build boolean start-codon mask]
+    [Mark positions matching any requested start codon]
+       |
+       v
+    [For each start codon position in mask:]
+       |
+       v
+    [Find next in-frame stop codon (TAA, TAG, TGA)]
+       |
+       v
+    [Stop codon found?]
+       /          \
+     Yes           No
+      |             |
+      |             v
+      |       [Skip — ORF is incomplete]
+      |
+      v
+    [Calculate ORF length in nucleotides]
+       |
+       v
+    [Length >= --min-length?]
+       /          \
+     Yes           No
+      |             |
+      |             v
+      |       [Skip — ORF too short]
+      |
+      v
+    [Convert coordinates to forward-strand positions]
+       |
+       v
+    [Is this the longest ORF for this stop codon?]
+       /          \
+     Yes           No
+      |             |
+      |             v
+      |       [Skip — shorter ORF already recorded]
+      |
+      v
+    [Record ORF: strand, frame, start, end, length, start codon]
+       |
+       v
+    [Repeat for reverse complement strand]
+       |
+       v
+    [Return flat list of all ORF records]
