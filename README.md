@@ -207,10 +207,36 @@ plots/
 ```
 
 ## References
-- NEEDDDD TO ADD STUFF HERE AS WELL
+- NEEDDDD TO Format these
 - NCBI Entrez API: https://www.ncbi.nlm.nih.gov/books/NBK25499/
 - Biopython: https://biopython.org/
 - NumPy: https://numpy.org/
+- 
+- https://biology.stackexchange.com/questions/56440/why-are-there-six-reading-frames-if-only-one-strand-of-dna-is-referred-to-as-the
+
+https://www.bioinformatics.org/sms/iupac.html
+
+https://github.com/urmi-21/orfipy/blob/master/orfipy/findorfs.py
+
+https://github.com/Chokyotager/ORFFinder 
+
+https://github.com/oschwengers/bakta
+
+https://pmc.ncbi.nlm.nih.gov/articles/PMC11521203/
+
+https://link.springer.com/article/10.1186/s12864-023-09311-7 
+
+https://www.cell.com/trends/genetics/fulltext/S0168-9525(17)30229-9
+
+(https://pmc.ncbi.nlm.nih.gov/articles/PMC11445065/)
+
+https://www.ncbi.nlm.nih.gov/orffinder/
+https://www.nature.com/articles/s41525-020-00167-4#:~:text=nORFs%20are%20typically%20smaller%20than,://norfs.org/home.
+
+https://www.researchgate.net/figure/a-Heatmap-describing-the-codon-usage-preferences-for-the-top-24-most-common-codons-and_fig1_371017339
+
+https://www.ncbi.nlm.nih.gov/books/NBK21136/
+
 
 ## License
 This project is licensed under the GNU LGPL v2.1 Chosen for open collaboration, ease of edits, and public use.
