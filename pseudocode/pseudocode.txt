@@ -1,0 +1,313 @@
+PSEUDOCODE: ORCA – ORF Recognition and Comparative Annotator
+=============================================================
+
+
+MAIN PIPELINE
+-------------
+
+FUNCTION main():
+    args <- parse_arguments()  # Read CLI arguments with argparse
+
+    accession  <- args.accession  OR prompt user
+    accession2 <- args.accession2  # None if not supplied
+    email      <- args.email      OR prompt user
+    start_codons <- validate_start_codons(args.start_codons)
+
+    IF args.min_length < 3:
+        Print error and exit
+
+    # Step 1: Run pipeline for sequence 1
+    acc1, seq1, orfs1 <- run_single_sequence(accession, email, start_codons, args.min_length)
+    IF acc1 is None:
+        Print error and exit
+
+    # Step 2: Run pipeline for sequence 2 (if provided)
+    IF accession2 is not None:
+        acc2, seq2, orfs2 <- run_single_sequence(accession2, email, start_codons, args.min_length)
+        IF acc2 is None:
+            Print error and exit
+        Write combined CSV for both sequences
+    ELSE:
+        Write combined CSV for sequence 1 only
+
+    # Step 3: Generate plots
+    IF comparative mode:
+        plot_comparative_orf_map(orfs1, seq1, acc1, orfs2, seq2, acc2)
+        plot_codon_usage_comparison(seq1, acc1, seq2, acc2)
+    ELSE:
+        plot_orf_map(orfs1, seq1, acc1)
+
+    # Step 4: Enrich ORFs with statistics and write reports
+    calculate_orf_stats(orfs1, seq1)
+    repeated1 <- find_repeated_orfs(orfs1)
+    write_stats_to_file(orfs1, filename="output/orf_summary.txt")
+
+    IF comparative mode:
+        calculate_orf_stats(orfs2, seq2)
+        repeated2 <- find_repeated_orfs(orfs2)
+        write_stats_to_file(orfs2, filename="output/orf_summary_seq2.txt")
+        write_comparative_report(orfs1, orfs2, acc1, acc2)
+        write_comparative_csv(orfs1, orfs2, acc1, acc2)
+
+    Print "Done."
+
+
+FUNCTION run_single_sequence(accession, email, start_codons, min_length):
+    # Fetch, validate, and find ORFs for one accession
+    acc, clean_seq <- run_input_validation(accession, email)
+    IF clean_seq is None:
+        RETURN None, None, None
+
+    nested_dict, flat_list <- find_orfs(clean_seq, start_codons, min_length)
+    print_summary(nested_dict, flat_list, label=accession)
+
+    IF flat_list is empty:
+        Print warning — no ORFs found
+
+    RETURN acc, clean_seq, flat_list
+
+
+INPUT VALIDATION
+----------------
+
+FUNCTION run(accession, email, accession2=None):
+    IF NOT validate_email(email):
+        RETURN None, None
+
+    Set Entrez.email <- email
+
+    acc1, seq1 <- fetch_and_validate(accession)
+    IF acc1 is None:
+        RETURN None, None
+
+    IF accession2 is provided:
+        acc2, seq2 <- fetch_and_validate(accession2)
+        IF acc2 is None:
+            Print warning — continuing with sequence 1 only
+            RETURN acc1, seq1, None, None
+        RETURN acc1, seq1, acc2, seq2
+
+    RETURN acc1, seq1
+
+
+FUNCTION fetch_and_validate(accession):
+    raw_sequence <- fetch_fasta_from_ncbi(accession)
+    IF raw_sequence is None:
+        RETURN None, None
+
+    is_valid, clean_seq <- validate_dna_sequence(raw_sequence)
+    IF NOT is_valid:
+        RETURN None, None
+
+    write_cleaned_fasta(clean_seq, accession)
+    RETURN accession, clean_seq
+
+
+FUNCTION validate_email(email):
+    IF email is empty:
+        Print error
+        RETURN False
+    IF email does not match pattern "username@domain.ext":
+        Print error
+        RETURN False
+    RETURN True
+
+
+FUNCTION fetch_fasta_from_ncbi(accession):
+    TRY:
+        handle <- Entrez.efetch(db="nucleotide", id=accession, rettype="fasta")
+        record <- SeqIO.read(handle, "fasta")
+        RETURN string(record.seq)
+    EXCEPT any error:
+        Print error message
+        RETURN None
+
+
+FUNCTION validate_dna_sequence(sequence):
+    sequence <- uppercase, remove whitespace and digits
+
+    IF sequence is empty:
+        RETURN False, ""
+
+    invalid_chars <- characters not in IUPAC alphabet
+    IF invalid_chars exist:
+        Print warning and remove them
+
+    IF length < 6:
+        Print error — sequence too short
+        RETURN False, sequence
+
+    RETURN True, sequence
+
+
+FUNCTION validate_start_codons(requested):
+    upper <- uppercase each codon in requested
+    IF any codon not in {ATG, GTG, TTG}:
+        Print error and exit
+    IF GTG or TTG requested:
+        Print warning about false positives in eukaryotes
+    RETURN upper
+
+
+ORF FINDER
+----------
+
+FUNCTION find_orfs(dna_sequence, start_codons, min_length):
+    dna_sequence <- uppercase and strip
+
+    all_orfs <- scan_all_frames(dna_sequence, start_codons, min_length)
+
+    nested_dict <- empty dict with "canonical" and "noncanonical" keys
+    flat_list   <- empty list
+    counters    <- empty dict
+
+    FOR EACH orf IN all_orfs:
+        label <- assign label and insert orf into nested_dict
+        Add orf with label to flat_list
+
+    RETURN nested_dict, flat_list
+
+
+FUNCTION scan_all_frames(dna_sequence, start_codons, min_length):
+    rev_comp <- reverse_complement(dna_sequence)
+    all_orfs <- empty list
+
+    FOR frame IN [0, 1, 2]:
+        all_orfs <- all_orfs + scan_frame(dna_sequence, frame, start_codons, min_length, "+")
+        all_orfs <- all_orfs + scan_frame(rev_comp,     frame, start_codons, min_length, "-")
+
+    RETURN all_orfs
+
+
+FUNCTION scan_frame(dna_sequence, frame, start_codons, min_length, strand):
+    codons <- sequence_to_codon_array(dna_sequence, frame)
+    IF codons is empty:
+        RETURN empty list
+
+    start_mask <- boolean array marking positions matching any start codon
+
+    best_per_stop <- empty dict  # keyed by stop codon position
+
+    FOR EACH start position IN start_mask:
+        record <- process_start_codon(start position, codons, frame, strand, min_length)
+        IF record is None:
+            CONTINUE
+        stop_key <- position of the stop codon
+        IF stop_key not already in best_per_stop:
+            best_per_stop[stop_key] <- record  # first (longest) wins
+
+    RETURN list of best_per_stop values
+
+
+FUNCTION process_start_codon(codon_index, codons, frame, strand, min_length):
+    rc_start  <- codon_index_to_nucleotide_position(frame, codon_index)
+    stop_index <- find_stop_codon_index(codons, codon_index)
+
+    IF stop_index is None:
+        RETURN None  # no stop codon found
+
+    rc_end    <- codon_index_to_nucleotide_position(frame, stop_index) + 3
+    length_nt <- rc_end - rc_start
+
+    IF length_nt < min_length:
+        RETURN None
+
+    start, end <- resolve_coordinates(strand, rc_start, rc_end, sequence_length)
+    RETURN {strand, frame, start, end, length_nt, start_codon}
+
+
+FUNCTION reverse_complement(dna_sequence):
+    complement_map <- {A:T, T:A, G:C, C:G, N:N}
+    char_array  <- convert sequence to NumPy character array
+    complement  <- apply complement_map to each character
+    RETURN join(complement reversed)
+
+
+ORF ANALYSIS
+------------
+
+FUNCTION calculate_orf_stats(flat_list, dna_sequence):
+    FOR EACH orf IN flat_list:
+        seq              <- extract_orf_sequence(orf, dna_sequence)
+        orf.sequence     <- seq
+        orf.gc_content   <- gc_content(seq)
+        orf.protein_length <- protein_length(seq)
+    RETURN flat_list
+
+
+FUNCTION find_repeated_orfs(flat_list):
+    counts <- empty dict
+    FOR EACH orf IN flat_list:
+        counts[orf.sequence] <- counts[orf.sequence] + 1
+    RETURN sequences where count > 1
+
+
+FUNCTION gc_content(sequence):
+    gc <- count of G and C in sequence
+    RETURN (gc / length of sequence) * 100
+
+
+FUNCTION codon_usage(sequence):
+    counts <- empty dict
+    FOR i IN range(0, length - 2, step 3):
+        codon <- sequence[i : i+3]
+        counts[codon] <- counts[codon] + 1
+    RETURN counts
+
+
+STATISTICS AND REPORTING
+------------------------
+
+FUNCTION print_summary(nested_dict, flat_list, label):
+    n_canonical    <- count of canonical ORFs
+    n_noncanonical <- count of non-canonical ORFs
+    plus_strand    <- count of ORFs on + strand
+    minus_strand   <- count of ORFs on - strand
+    Print formatted summary table to stdout
+
+
+FUNCTION write_stats_to_file(flat_list, filename):
+    Compute dataset-level stats (total ORFs, average GC content)
+    Find longest ORF
+    Write per-ORF table (length, GC%, protein length, strand, frame)
+    Write aggregate codon usage table
+    Save to filename
+
+
+FUNCTION write_comparative_report(orfs1, orfs2, acc1, acc2):
+    Compare ORF counts, average GC content, average length between sequences
+    Write side-by-side summary to output/comparison.txt
+
+
+FUNCTION write_combined_csv(acc1, orfs1, seq1, acc2=None, orfs2=None, seq2=None):
+    FOR EACH orf IN orfs1:
+        Write row with accession label and all ORF fields
+    IF acc2 is provided:
+        FOR EACH orf IN orfs2:
+            Write row with accession label and all ORF fields
+    Save to output/orfs.csv
+
+
+VISUALIZATION
+-------------
+
+FUNCTION plot_orf_map(flat_list, seq_len, accession):
+    FOR EACH orf IN flat_list:
+        Draw horizontal bar at orf.start to orf.end
+        Color by strand (+ or -)
+        Place bar in correct reading frame lane
+    Add sequence length scale
+    Save to output/orf_map.png
+
+
+FUNCTION plot_comparative_orf_map(orfs1, seq_len1, acc1, orfs2, seq_len2, acc2):
+    Draw orf_map for sequence 1 in top panel
+    Draw orf_map for sequence 2 in bottom panel
+    Save to output/orf_map.png
+
+
+FUNCTION plot_codon_usage_comparison(seq1, acc1, seq2, acc2):
+    usage1 <- codon_usage(seq1)
+    usage2 <- codon_usage(seq2)
+    Plot grouped bar chart comparing usage for each codon
+    Save to output/codon_usage_comparison.png
