@@ -7,7 +7,7 @@ Nicole Decocker's part
 
 Purpose:
     Visual output for the ORCA pipeline.
-    Generates an ORF map showing all non-nested ORFs across all six reading
+    Generates an ORF map showing all ORFs across all six reading
     frames, and (in comparative mode) an RSCU codon-usage heatmap.
 """
 
@@ -88,39 +88,6 @@ _AA_ORDER = [
 ]
 
 
-# ── Internal helpers ─────────────────────────────────────────────────────────
-
-def _filter_nested(flat_list: list) -> list:
-    """
-    Return a copy of flat_list with nested ORFs removed.
-
-    An ORF is considered nested if its entire [start, end] span falls
-    completely within the span of another ORF on the same strand and frame.
-    ORFs with end=None (open reading frames) are passed through unchanged.
-    """
-    # Separate complete ORFs from open ones
-    complete = [o for o in flat_list if o.get("end") is not None]
-    open_orfs = [o for o in flat_list if o.get("end") is None]
-
-    by_frame: dict = defaultdict(list)
-    for orf in complete:
-        by_frame[(orf["strand"], orf["frame"])].append(orf)
-
-    non_nested: list = []
-    for orfs in by_frame.values():
-        for orf in orfs:
-            is_nested = any(
-                other is not orf
-                and other["start"] <= orf["start"]
-                and other["end"] >= orf["end"]
-                for other in orfs
-            )
-            if not is_nested:
-                non_nested.append(orf)
-
-    return non_nested + open_orfs
-
-
 def _compute_rscu(sequence: str) -> dict[str, float]:
     """
     Compute Relative Synonymous Codon Usage (RSCU) for a DNA sequence.
@@ -167,13 +134,33 @@ def draw_orf_map(
     """
     Draw one ORF map onto an existing Axes object.
 
-    Nested ORFs are automatically excluded.  Each ORF is drawn as a
-    filled rectangle coloured by start codon; its ordinal number (1, 2, …)
-    is printed in white text at the centre of the rectangle.
+    Each ORF is drawn as a filled rectangle coloured by start codon; its
+    ordinal number (1, 2, …) is printed in white text at the centre of the
+    rectangle.  Open ORFs (those with ``end=None``) are silently skipped.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        The Axes object to draw onto.  Must already exist; this function
+        does not create figures.
+    flat_list : list
+        Flat ORF list as returned by ``find_orfs()``.  Each dict must
+        contain: ``strand``, ``frame``, ``start``, ``end``, ``start_codon``.
+    seq_len : int
+        Total length of the DNA sequence in nucleotides.  Sets the x-axis
+        scale so ORF positions are shown in true sequence coordinates.
+    accession : str
+        Accession number or label shown in the subplot title.
+
+    Returns
+    -------
+    None
+        Draws directly onto ``ax``; caller is responsible for saving or
+        displaying the figure.
     """
-    # Filter out nested ORFs then sort by start position for stable numbering
+    # Sort by start position for stable ordinal numbering; open ORFs skipped below
     display_list = sorted(
-        _filter_nested(flat_list),
+        [o for o in flat_list if o.get("end") is not None],
         key=lambda o: o.get("start", 0),
     )
 
