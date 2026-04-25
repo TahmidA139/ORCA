@@ -41,14 +41,55 @@ STOP_CODONS:         List[str] = ["TAA", "TAG", "TGA"]
 CANONICAL_START:     str       = "ATG"
 NONCANONICAL_STARTS: List[str] = ["GTG", "TTG"]
 
-DEFAULT_START_CODONS:  List[str] = ["ATG"]
-DEFAULT_MIN_LENGTH:    int       = 30
+DEFAULT_START_CODONS: List[str] = ["ATG"]
+DEFAULT_MIN_LENGTH:   int       = 30
 
 CSV_FIELDNAMES: List[str] = [
     "orf_id", "strand", "start_codon",
     "frame", "start", "end", "length_nt",
 ]
 
+
+# ---------------------------------------------------------------------------
+# Codon classification
+# ---------------------------------------------------------------------------
+
+def _codon_category(codon: str) -> str:
+    """
+    Return the classification key for a start codon.
+
+    Returns ``"canonical"`` for ATG, or the codon string itself (e.g.
+    ``"GTG"``) for a recognised non-canonical codon.  Raises ``ValueError``
+    for anything not in ``ALL_START_CODONS`` — this path is unreachable in
+    normal use because ``find_orfs`` validates all codons at the entry point.
+
+    Parameters
+    ----------
+    codon : str
+        A three-letter start codon string (uppercase).
+
+    Returns
+    -------
+    str
+        ``"canonical"`` or the non-canonical codon string.
+
+    Raises
+    ------
+    ValueError
+        If *codon* is not in ``ALL_START_CODONS``.
+    """
+    if codon == CANONICAL_START:
+        return "canonical"
+    if codon in NONCANONICAL_STARTS:
+        return codon
+    raise ValueError(
+        f"Unrecognised start codon: {codon!r}. Must be one of {ALL_START_CODONS}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# Frame scanning
+# ---------------------------------------------------------------------------
 
 def _scan_all_frames(
     dna_sequence: str,
@@ -89,20 +130,22 @@ def _scan_all_frames(
     return orfs
 
 
-def _make_nested_dict(
-    active_noncanonical: List[str],
-) -> Dict[str, Any]:
+# ---------------------------------------------------------------------------
+# Output building
+# ---------------------------------------------------------------------------
+
+def _make_nested_dict(start_codons: List[str]) -> Dict[str, Any]:
     """
     Return an empty nested output dictionary with the correct structure.
 
-    The nested dict separates canonical ATG ORFs from non-canonical ORFs,
-    with one sub-dict per active non-canonical start codon.
+    Non-canonical keys are derived directly from *start_codons*, so only
+    codons that were actually requested appear in the output — no empty
+    buckets for unused codons.
 
     Parameters
     ----------
-    active_noncanonical : List[str]
-        Non-canonical start codons that were requested by the user (subset of
-        NONCANONICAL_STARTS that appear in the current run's start_codons list).
+    start_codons : List[str]
+        The start codons for the current run.
 
     Returns
     -------
@@ -112,14 +155,15 @@ def _make_nested_dict(
             {
                 "canonical":    {},
                 "noncanonical": {
-                    "GTG": {},   # only present if GTG is active
-                    "TTG": {},   # only present if TTG is active
+                    "GTG": {},   # only present if GTG was requested
+                    "TTG": {},   # only present if TTG was requested
                 }
             }
     """
+    active_nc = [sc for sc in NONCANONICAL_STARTS if sc in start_codons]
     return {
         "canonical":    {},
-        "noncanonical": {sc: {} for sc in active_noncanonical},
+        "noncanonical": {sc: {} for sc in active_nc},
     }
 
 
@@ -127,7 +171,6 @@ def _label_and_insert(
     orf:         Dict[str, Any],
     nested_dict: Dict[str, Any],
     counts:      Dict[str, int],
-    active_nc:   List[str],
 ) -> str:
     """
     Assign a human-readable label to one ORF, insert it into nested_dict,
@@ -135,8 +178,11 @@ def _label_and_insert(
 
     Canonical ORFs are numbered sequentially as ``ORF1``, ``ORF2``, …
     Non-canonical ORFs are labelled ``<CODON>_ORF1``, ``<CODON>_ORF2``, …
-    (e.g. ``GTG_ORF1``).  ORFs with an unrecognised start codon receive
-    the label ``"unknown"`` and are *not* inserted into the nested dict.
+    (e.g. ``GTG_ORF1``).
+
+    The ``nested_dict["noncanonical"]`` keys are the single source of truth
+    for which non-canonical codons are active — no separate ``active_nc``
+    list is needed.
 
     Parameters
     ----------
@@ -148,30 +194,25 @@ def _label_and_insert(
         Running counter dict keyed on ``"canonical"`` or the codon string
         (e.g. ``"GTG"``).  Mutated in-place; must be shared across all calls
         within the same ``find_orfs`` invocation.
-    active_nc : List[str]
-        Non-canonical start codons active in the current run (used to guard
-        insertion into nested_dict["noncanonical"]).
 
     Returns
     -------
     str
-        The label assigned to this ORF (e.g. ``"ORF3"``, ``"GTG_ORF1"``,
-        or ``"unknown"``).
+        The label assigned to this ORF (e.g. ``"ORF3"`` or ``"GTG_ORF1"``).
     """
-    sc = orf["start_codon"]
+    sc       = orf["start_codon"]
+    category = _codon_category(sc)   # raises for invalid codons (unreachable post-validation)
 
-    if sc == CANONICAL_START:
+    if category == "canonical":
         counts["canonical"] = counts.get("canonical", 0) + 1
         label = f"ORF{counts['canonical']}"
         nested_dict["canonical"][label] = orf
 
-    elif sc in active_nc:
+    else:
+        # category is the codon string itself (e.g. "GTG")
         counts[sc] = counts.get(sc, 0) + 1
         label = f"{sc}_ORF{counts[sc]}"
         nested_dict["noncanonical"][sc][label] = orf
-
-    else:
-        label = "unknown"
 
     return label
 
@@ -183,17 +224,12 @@ def _build_outputs(
     """
     Build the nested dict and flat list from the processed ORF records.
 
-    Iterates over all raw ORF records, assigns each a label via
-    ``_label_and_insert``, and builds both the nested dict (for structured
-    access) and the flat list (for CSV output).
-
     Parameters
     ----------
     all_orfs : List[Dict[str, Any]]
         Flat list of raw ORF records from ``_scan_all_frames``.
     start_codons : List[str]
-        The start codons used in the current run (used to determine which
-        non-canonical groups are active).
+        The start codons used in the current run.
 
     Returns
     -------
@@ -211,19 +247,22 @@ def _build_outputs(
         - **flat_list** (``List[Dict[str, Any]]``): One dict per ORF, each
           containing all fields from the raw record plus ``"orf_id"``.
     """
-    active_nc   = [sc for sc in NONCANONICAL_STARTS if sc in start_codons]
-    nested_dict = _make_nested_dict(active_nc)
+    nested_dict = _make_nested_dict(start_codons)
     flat_list:  List[Dict[str, Any]] = []
     counts:     Dict[str, int]       = {}
 
     for orf in all_orfs:
-        label             = _label_and_insert(orf, nested_dict, counts, active_nc)
+        label             = _label_and_insert(orf, nested_dict, counts)
         flat_record       = dict(orf)
         flat_record["orf_id"] = label
         flat_list.append(flat_record)
 
     return nested_dict, flat_list
 
+
+# ---------------------------------------------------------------------------
+# Public interface
+# ---------------------------------------------------------------------------
 
 def find_orfs(
     dna_sequence: str,
@@ -233,9 +272,10 @@ def find_orfs(
     """
     Find all complete ORFs in all six reading frames of a DNA sequence.
 
-    This is the primary public interface for ORF detection.  It normalises
-    the input sequence, delegates frame scanning to ``_scan_all_frames``, and
-    assembles the results into two complementary data structures.
+    This is the primary public interface for ORF detection.  It validates
+    the requested start codons, normalises the input sequence, delegates
+    frame scanning to ``_scan_all_frames``, and assembles the results into
+    two complementary data structures.
 
     Parameters
     ----------
@@ -262,15 +302,24 @@ def find_orfs(
           fields: ``orf_id``, ``strand``, ``start_codon``, ``frame``,
           ``start``, ``end``, ``length_nt``, ``status``.
 
+    Raises
+    ------
+    ValueError
+        If any element of *start_codons* is not in ``ALL_START_CODONS``.
+
     Examples
     --------
     >>> grouped, flat = find_orfs("ATGAAATAA", min_length=3)
     >>> flat[0]["start_codon"]
     'ATG'
     """
+    invalid = [sc for sc in start_codons if sc not in ALL_START_CODONS]
+    if invalid:
+        raise ValueError(
+            f"Unrecognised start codon(s): {invalid}. "
+            f"Must be a subset of {ALL_START_CODONS}."
+        )
+
     dna_sequence = dna_sequence.upper().strip()
-
-    all_orfs = _scan_all_frames(dna_sequence, start_codons, min_length)
-
+    all_orfs     = _scan_all_frames(dna_sequence, start_codons, min_length)
     return _build_outputs(all_orfs, start_codons)
-
