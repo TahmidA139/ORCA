@@ -168,6 +168,8 @@ run_tests() {
     # printed by verify_output_files and verify_output_content are shown.
     # Each test passes --outdir directly to ORCA so results land in the
     # correct test_output/testN/ subdirectory without any copying.
+    # Test 3 also saves its stdout and stderr as example_stdout.txt and
+    # example_stderr.txt in test_output/ for use as reference files.
 
     # Start with a clean test_output/ directory
     rm -rf "$TEST_OUTDIR"
@@ -201,12 +203,15 @@ run_tests() {
     # that all comparative output files (combined FASTA, combined ORF CSV,
     # codon-usage heatmap, comparison report) are produced.
     # ---------------------------------------------------------------------- #
+    # stdout and stderr from this run are saved as reference files so readers
+    # can see what a correct comparative run looks like without running it.
     python -m src.main \
         --fasta  "$OR2B6_FASTA" \
         --fasta2 "$IUPAC_FASTA" \
         --email  "$DUMMY_EMAIL" \
         --outdir "${TEST_OUTDIR}/test3" \
-        > /dev/null 2>&1
+        > "${TEST_OUTDIR}/example_stdout.txt" \
+        2> "${TEST_OUTDIR}/example_stderr.txt"
 
     # ---------------------------------------------------------------------- #
     # Test 4: Expected failure — multi-sequence FASTA
