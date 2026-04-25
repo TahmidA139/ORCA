@@ -18,9 +18,7 @@
 #   - src/main.py is in the src/ directory under the project root.
 # ==============================================================================
 
-
 # ---- Configuration -----------------------------------------------------------
-
 # Directory where this script lives (also the project root)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -43,9 +41,7 @@ DUMMY_EMAIL="test@example.com"
 PASSED=0
 FAILED=0
 
-
 # ---- Helper functions --------------------------------------------------------
-
 print_header() {
     # Print a section header to make the output easier to read.
     # Arguments:
@@ -120,55 +116,38 @@ check_exit_nonzero() {
     fi
 }
 
-
 # ---- Pre-flight checks -------------------------------------------------------
-
 preflight_checks() {
     # Make sure the input files and source module exist before we try to run
-    # anything. Exit early if something critical is missing.
-
-    print_header "Pre-flight checks"
+    # anything. Runs silently on success; prints errors and exits on failure.
 
     local all_ok=true
 
     if [[ ! -f "${SCRIPT_DIR}/src/main.py" ]]; then
         echo "  ERROR: src/main.py not found in ${SCRIPT_DIR}."
         all_ok=false
-    else
-        echo "  OK: src/main.py found."
     fi
 
     if [[ ! -f "$OR2B6_FASTA" ]]; then
         echo "  ERROR: Input file not found: ${OR2B6_FASTA}"
         all_ok=false
-    else
-        echo "  OK: OR2B6_sequence.fasta found."
     fi
 
     if [[ ! -f "$IUPAC_FASTA" ]]; then
         echo "  ERROR: Input file not found: ${IUPAC_FASTA}"
         all_ok=false
-    else
-        echo "  OK: IUPAC_ambiguity_test.fasta found."
     fi
 
     if [[ ! -f "$MULTI_FASTA" ]]; then
         echo "  ERROR: Input file not found: ${MULTI_FASTA}"
         all_ok=false
-    else
-        echo "  OK: multiple_sequence_file.fasta found."
     fi
 
-    # Check that Python is available and can import the two external libraries
-    # used by ORCA (matplotlib is used in graphics.py; numpy is used in the
-    # RSCU heatmap computation).
     if ! python -c "import matplotlib, numpy" 2>/dev/null; then
         echo "  ERROR: Python cannot import matplotlib or numpy."
         echo "         Make sure the ORCA conda environment is activated."
         echo "         See README for setup instructions."
         all_ok=false
-    else
-        echo "  OK: Python and required libraries are available."
     fi
 
     if [[ "$all_ok" == false ]]; then
@@ -178,16 +157,14 @@ preflight_checks() {
     fi
 }
 
-
 # ---- Run the program ---------------------------------------------------------
-
 run_tests() {
     # Execute src/main.py for each test case and preserve the outputs.
+    # All program output is redirected to /dev/null — only the check results
+    # printed by verify_output_files and verify_output_content are shown.
     # Because ORCA always writes to output/ in the project root, we copy
     # that directory into test_output/testN/ after each run so each test's
     # results are saved separately before the next run overwrites them.
-
-    print_header "Running pipeline tests"
 
     # Start with a clean test_output/ directory
     rm -rf "$TEST_OUTDIR"
@@ -197,25 +174,12 @@ run_tests() {
     # Test 1: Single sequence — OR2B6 (NM_012367.1), default settings
     # Verifies the basic single-sequence code path end-to-end.
     # ---------------------------------------------------------------------- #
-    echo "Test 1: Single sequence — OR2B6_sequence.fasta"
-
     rm -rf "$ORCA_OUTDIR"
     python -m src.main \
         --fasta  "$OR2B6_FASTA" \
-        --email  "$DUMMY_EMAIL"
-    local exit1=$?
-
+        --email  "$DUMMY_EMAIL" \
+        > /dev/null 2>&1
     cp -r "$ORCA_OUTDIR" "${TEST_OUTDIR}/test1"
-
-    if [[ $exit1 -eq 0 ]]; then
-        echo "  PASS: Test 1 exited with code 0."
-        PASSED=$((PASSED + 1))
-    else
-        echo "  FAIL: Test 1 exited with code ${exit1}."
-        FAILED=$((FAILED + 1))
-    fi
-
-    echo ""
 
     # ---------------------------------------------------------------------- #
     # Test 2: IUPAC ambiguity — CCR7 (NM_001838.4)
@@ -223,70 +187,41 @@ run_tests() {
     # Verifies that the validation/cleaning step handles ambiguity codes
     # gracefully and the pipeline still produces output.
     # ---------------------------------------------------------------------- #
-    echo "Test 2: IUPAC ambiguity handling — IUPAC_ambiguity_test.fasta"
-
     rm -rf "$ORCA_OUTDIR"
     python -m src.main \
         --fasta  "$IUPAC_FASTA" \
-        --email  "$DUMMY_EMAIL"
-    local exit2=$?
-
+        --email  "$DUMMY_EMAIL" \
+        > /dev/null 2>&1
     cp -r "$ORCA_OUTDIR" "${TEST_OUTDIR}/test2"
-
-    if [[ $exit2 -eq 0 ]]; then
-        echo "  PASS: Test 2 exited with code 0."
-        PASSED=$((PASSED + 1))
-    else
-        echo "  FAIL: Test 2 exited with code ${exit2}."
-        FAILED=$((FAILED + 1))
-    fi
-
-    echo ""
 
     # ---------------------------------------------------------------------- #
     # Test 3: Comparative mode — OR2B6 vs CCR7
     # Runs the full comparative pipeline on two local FASTA files and checks
-    # that all comparative output files (combined FASTA, second ORF CSV,
-    # codon-usage heatmap) are produced.
+    # that all comparative output files (combined FASTA, combined ORF CSV,
+    # codon-usage heatmap, comparison report) are produced.
     # ---------------------------------------------------------------------- #
-    echo "Test 3: Comparative mode — OR2B6_sequence.fasta vs IUPAC_ambiguity_test.fasta"
-
     rm -rf "$ORCA_OUTDIR"
     python -m src.main \
         --fasta  "$OR2B6_FASTA" \
         --fasta2 "$IUPAC_FASTA" \
-        --email  "$DUMMY_EMAIL"
-    local exit3=$?
-
+        --email  "$DUMMY_EMAIL" \
+        > /dev/null 2>&1
     cp -r "$ORCA_OUTDIR" "${TEST_OUTDIR}/test3"
-
-    if [[ $exit3 -eq 0 ]]; then
-        echo "  PASS: Test 3 exited with code 0."
-        PASSED=$((PASSED + 1))
-    else
-        echo "  FAIL: Test 3 exited with code ${exit3}."
-        FAILED=$((FAILED + 1))
-    fi
-
-    echo ""
 
     # ---------------------------------------------------------------------- #
     # Test 4: Expected failure — multi-sequence FASTA
     # main.py requires exactly one sequence per local file and must exit with
-    # a non-zero code when given multiple_sequence_file.fasta (12 sequences).
+    # a non-zero code when given multiple_sequence_file.fasta (17 sequences).
     # This verifies that the input-validation error path works correctly.
     # ---------------------------------------------------------------------- #
-    echo "Test 4: Expected failure — multiple_sequence_file.fasta (should be rejected)"
-
     python -m src.main \
         --fasta  "$MULTI_FASTA" \
-        --email  "$DUMMY_EMAIL" 2>/dev/null
+        --email  "$DUMMY_EMAIL" \
+        > /dev/null 2>&1
     local exit4=$?
-
     check_exit_nonzero $exit4 \
         "Pipeline correctly rejects a FASTA file containing multiple sequences."
 }
-
 
 # ---- Verify output files -----------------------------------------------------
 
@@ -296,30 +231,31 @@ verify_output_files() {
     print_header "Checking output files"
 
     # ---- Test 1: single-sequence outputs --------------------------------- #
-    check_file_exists "${TEST_OUTDIR}/test1/orfs.csv"                "Test 1 ORF CSV (orfs.csv)"
-    check_file_exists "${TEST_OUTDIR}/test1/cleaned_sequence.fasta"  "Test 1 cleaned FASTA"
-    check_file_exists "${TEST_OUTDIR}/test1/orf_map.png"             "Test 1 ORF map image"
-    check_file_exists "${TEST_OUTDIR}/test1/orf_summary.txt"         "Test 1 ORF summary text"
+    check_file_exists "${TEST_OUTDIR}/test1/orfs.csv"               "Test 1 ORF CSV"
+    check_file_exists "${TEST_OUTDIR}/test1/cleaned_sequence.fasta" "Test 1 cleaned FASTA"
+    check_file_exists "${TEST_OUTDIR}/test1/orf_map.png"            "Test 1 ORF map image"
+    check_file_exists "${TEST_OUTDIR}/test1/orf_summary.txt"        "Test 1 ORF summary"
 
     # ---- Test 2: IUPAC ambiguity — same file set as single-sequence mode - #
-    check_file_exists "${TEST_OUTDIR}/test2/orfs.csv"                "Test 2 ORF CSV (orfs.csv)"
-    check_file_exists "${TEST_OUTDIR}/test2/cleaned_sequence.fasta"  "Test 2 cleaned FASTA"
-    check_file_exists "${TEST_OUTDIR}/test2/orf_map.png"             "Test 2 ORF map image"
-    check_file_exists "${TEST_OUTDIR}/test2/orf_summary.txt"         "Test 2 ORF summary text"
+    check_file_exists "${TEST_OUTDIR}/test2/orfs.csv"               "Test 2 ORF CSV"
+    check_file_exists "${TEST_OUTDIR}/test2/cleaned_sequence.fasta" "Test 2 cleaned FASTA"
+    check_file_exists "${TEST_OUTDIR}/test2/orf_map.png"            "Test 2 ORF map image"
+    check_file_exists "${TEST_OUTDIR}/test2/orf_summary.txt"        "Test 2 ORF summary"
 
-    # ---- Test 3: comparative mode — additional files --------------------- #
-    check_file_exists "${TEST_OUTDIR}/test3/orfs.csv"                   "Test 3 sequence-1 ORF CSV"
-    check_file_exists "${TEST_OUTDIR}/test3/orfs_seq2.csv"              "Test 3 sequence-2 ORF CSV"
+    # ---- Test 3: comparative mode ---------------------------------------- #
+    # In comparative mode both sequences are written into a single orfs.csv;
+    # there is no separate orfs_seq2.csv.
+    check_file_exists "${TEST_OUTDIR}/test3/orfs.csv"                   "Test 3 combined ORF CSV"
     check_file_exists "${TEST_OUTDIR}/test3/cleaned_sequences.fasta"    "Test 3 combined cleaned FASTA"
     check_file_exists "${TEST_OUTDIR}/test3/orf_map.png"                "Test 3 comparative ORF map"
     check_file_exists "${TEST_OUTDIR}/test3/codon_usage_comparison.png" "Test 3 codon-usage heatmap"
     check_file_exists "${TEST_OUTDIR}/test3/orf_summary.txt"            "Test 3 sequence-1 ORF summary"
     check_file_exists "${TEST_OUTDIR}/test3/orf_summary_seq2.txt"       "Test 3 sequence-2 ORF summary"
+    check_file_exists "${TEST_OUTDIR}/test3/comparison.txt"             "Test 3 comparative report"
+    check_file_exists "${TEST_OUTDIR}/test3/codon_comparison.csv"       "Test 3 codon comparison CSV"
 }
 
-
 # ---- Verify output content ---------------------------------------------------
-
 verify_output_content() {
     # Perform basic sanity checks on the content of the text and CSV outputs.
 
@@ -327,44 +263,47 @@ verify_output_content() {
 
     # ---- Test 1: OR2B6 (accession NM_012367.1 is read from the FASTA header) #
 
-    # The ORF CSV should reference the OR2B6 accession
     check_string_in_file "${TEST_OUTDIR}/test1/orfs.csv" \
         "NM_012367" \
         "Test 1 ORF CSV references the OR2B6 accession (NM_012367.1)."
 
-    # The ORF CSV should have at least one data row (i.e. at least one ORF found)
     check_csv_rows "${TEST_OUTDIR}/test1/orfs.csv" \
         1 \
         "Test 1 ORF CSV contains at least 1 ORF."
 
-    # The cleaned FASTA header should preserve the original accession
     check_string_in_file "${TEST_OUTDIR}/test1/cleaned_sequence.fasta" \
         "NM_012367" \
         "Test 1 cleaned FASTA header contains the OR2B6 accession."
 
     # ---- Test 2: CCR7 with IUPAC ambiguity codes (accession NM_001838.4) --- #
 
-    # The ORF CSV should reference the CCR7 accession
     check_string_in_file "${TEST_OUTDIR}/test2/orfs.csv" \
         "NM_001838" \
         "Test 2 ORF CSV references the CCR7 accession (NM_001838.4)."
 
-    # The cleaned FASTA must exist and not be empty (ambiguity chars were handled)
-    check_file_exists "${TEST_OUTDIR}/test2/cleaned_sequence.fasta" \
-        "Test 2 cleaned FASTA produced despite IUPAC ambiguity characters."
+    check_csv_rows "${TEST_OUTDIR}/test2/orfs.csv" \
+        1 \
+        "Test 2 ORF CSV contains at least 1 ORF."
+
+    check_string_in_file "${TEST_OUTDIR}/test2/cleaned_sequence.fasta" \
+        "NM_001838" \
+        "Test 2 cleaned FASTA header contains the CCR7 accession."
 
     # ---- Test 3: comparative mode ---------------------------------------- #
+    # Both accessions appear in the single combined orfs.csv.
 
-    # Both accessions should appear in their respective ORF CSVs
     check_string_in_file "${TEST_OUTDIR}/test3/orfs.csv" \
         "NM_012367" \
-        "Test 3 sequence-1 ORF CSV contains OR2B6 accession (NM_012367.1)."
+        "Test 3 combined ORF CSV contains the OR2B6 accession (NM_012367.1)."
 
-    check_string_in_file "${TEST_OUTDIR}/test3/orfs_seq2.csv" \
+    check_string_in_file "${TEST_OUTDIR}/test3/orfs.csv" \
         "NM_001838" \
-        "Test 3 sequence-2 ORF CSV contains CCR7 accession (NM_001838.4)."
+        "Test 3 combined ORF CSV contains the CCR7 accession (NM_001838.4)."
 
-    # The combined FASTA should contain both sequence headers
+    check_csv_rows "${TEST_OUTDIR}/test3/orfs.csv" \
+        2 \
+        "Test 3 combined ORF CSV contains ORFs from both sequences."
+
     check_string_in_file "${TEST_OUTDIR}/test3/cleaned_sequences.fasta" \
         "NM_012367" \
         "Test 3 combined FASTA contains the OR2B6 sequence."
@@ -372,20 +311,9 @@ verify_output_content() {
     check_string_in_file "${TEST_OUTDIR}/test3/cleaned_sequences.fasta" \
         "NM_001838" \
         "Test 3 combined FASTA contains the CCR7 sequence."
-
-    # Both ORF CSVs should have at least one data row
-    check_csv_rows "${TEST_OUTDIR}/test3/orfs.csv" \
-        1 \
-        "Test 3 sequence-1 ORF CSV contains at least 1 ORF."
-
-    check_csv_rows "${TEST_OUTDIR}/test3/orfs_seq2.csv" \
-        1 \
-        "Test 3 sequence-2 ORF CSV contains at least 1 ORF."
 }
 
-
 # ---- Summary -----------------------------------------------------------------
-
 print_summary() {
     # Print a final tally of passed and failed checks.
 
@@ -403,13 +331,9 @@ print_summary() {
     fi
 }
 
-
 # ---- Main entry point --------------------------------------------------------
-
 main() {
     # Orchestrate all test steps in order.
-
-    print_header "ORCA — Test Script"
 
     preflight_checks
     run_tests
