@@ -18,7 +18,9 @@
 #   - src/main.py is in the src/ directory under the project root.
 # ==============================================================================
 
+
 # ---- Configuration -----------------------------------------------------------
+
 # Directory where this script lives (also the project root)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -27,10 +29,6 @@ OR2B6_FASTA="${SCRIPT_DIR}/example_input_files/OR2B6_sequence.fasta"
 IUPAC_FASTA="${SCRIPT_DIR}/example_input_files/IUPAC_ambiguity_test.fasta"
 MULTI_FASTA="${SCRIPT_DIR}/example_input_files/multiple_sequence_file.fasta"
 
-# ORCA always writes its output to output/ in the project root.
-# After each test we copy that folder into test_output/testN/ so the
-# results are preserved and can be checked independently.
-ORCA_OUTDIR="${SCRIPT_DIR}/output"
 TEST_OUTDIR="${SCRIPT_DIR}/test_output"
 
 # Dummy email — required by the --email flag to suppress the interactive
@@ -41,7 +39,9 @@ DUMMY_EMAIL="test@example.com"
 PASSED=0
 FAILED=0
 
+
 # ---- Helper functions --------------------------------------------------------
+
 print_header() {
     # Print a section header to make the output easier to read.
     # Arguments:
@@ -116,7 +116,9 @@ check_exit_nonzero() {
     fi
 }
 
+
 # ---- Pre-flight checks -------------------------------------------------------
+
 preflight_checks() {
     # Make sure the input files and source module exist before we try to run
     # anything. Runs silently on success; prints errors and exits on failure.
@@ -157,14 +159,15 @@ preflight_checks() {
     fi
 }
 
+
 # ---- Run the program ---------------------------------------------------------
+
 run_tests() {
     # Execute src/main.py for each test case and preserve the outputs.
     # All program output is redirected to /dev/null — only the check results
     # printed by verify_output_files and verify_output_content are shown.
-    # Because ORCA always writes to output/ in the project root, we copy
-    # that directory into test_output/testN/ after each run so each test's
-    # results are saved separately before the next run overwrites them.
+    # Each test passes --outdir directly to ORCA so results land in the
+    # correct test_output/testN/ subdirectory without any copying.
 
     # Start with a clean test_output/ directory
     rm -rf "$TEST_OUTDIR"
@@ -174,12 +177,11 @@ run_tests() {
     # Test 1: Single sequence — OR2B6 (NM_012367.1), default settings
     # Verifies the basic single-sequence code path end-to-end.
     # ---------------------------------------------------------------------- #
-    rm -rf "$ORCA_OUTDIR"
     python -m src.main \
         --fasta  "$OR2B6_FASTA" \
         --email  "$DUMMY_EMAIL" \
+        --outdir "${TEST_OUTDIR}/test1" \
         > /dev/null 2>&1
-    cp -r "$ORCA_OUTDIR" "${TEST_OUTDIR}/test1"
 
     # ---------------------------------------------------------------------- #
     # Test 2: IUPAC ambiguity — CCR7 (NM_001838.4)
@@ -187,12 +189,11 @@ run_tests() {
     # Verifies that the validation/cleaning step handles ambiguity codes
     # gracefully and the pipeline still produces output.
     # ---------------------------------------------------------------------- #
-    rm -rf "$ORCA_OUTDIR"
     python -m src.main \
         --fasta  "$IUPAC_FASTA" \
         --email  "$DUMMY_EMAIL" \
+        --outdir "${TEST_OUTDIR}/test2" \
         > /dev/null 2>&1
-    cp -r "$ORCA_OUTDIR" "${TEST_OUTDIR}/test2"
 
     # ---------------------------------------------------------------------- #
     # Test 3: Comparative mode — OR2B6 vs CCR7
@@ -200,13 +201,12 @@ run_tests() {
     # that all comparative output files (combined FASTA, combined ORF CSV,
     # codon-usage heatmap, comparison report) are produced.
     # ---------------------------------------------------------------------- #
-    rm -rf "$ORCA_OUTDIR"
     python -m src.main \
         --fasta  "$OR2B6_FASTA" \
         --fasta2 "$IUPAC_FASTA" \
         --email  "$DUMMY_EMAIL" \
+        --outdir "${TEST_OUTDIR}/test3" \
         > /dev/null 2>&1
-    cp -r "$ORCA_OUTDIR" "${TEST_OUTDIR}/test3"
 
     # ---------------------------------------------------------------------- #
     # Test 4: Expected failure — multi-sequence FASTA
@@ -223,12 +223,11 @@ run_tests() {
         "Pipeline correctly rejects a FASTA file containing multiple sequences."
 }
 
+
 # ---- Verify output files -----------------------------------------------------
 
 verify_output_files() {
     # Check that every expected output file was created and is non-empty.
-
-    print_header "Checking output files"
 
     # ---- Test 1: single-sequence outputs --------------------------------- #
     check_file_exists "${TEST_OUTDIR}/test1/orfs.csv"               "Test 1 ORF CSV"
@@ -255,11 +254,11 @@ verify_output_files() {
     check_file_exists "${TEST_OUTDIR}/test3/codon_comparison.csv"       "Test 3 codon comparison CSV"
 }
 
+
 # ---- Verify output content ---------------------------------------------------
+
 verify_output_content() {
     # Perform basic sanity checks on the content of the text and CSV outputs.
-
-    print_header "Checking output content"
 
     # ---- Test 1: OR2B6 (accession NM_012367.1 is read from the FASTA header) #
 
@@ -313,7 +312,9 @@ verify_output_content() {
         "Test 3 combined FASTA contains the CCR7 sequence."
 }
 
+
 # ---- Summary -----------------------------------------------------------------
+
 print_summary() {
     # Print a final tally of passed and failed checks.
 
@@ -331,12 +332,15 @@ print_summary() {
     fi
 }
 
+
 # ---- Main entry point --------------------------------------------------------
+
 main() {
     # Orchestrate all test steps in order.
 
     preflight_checks
     run_tests
+    print_header "Checking output files and output content"
     verify_output_files
     verify_output_content
     print_summary
