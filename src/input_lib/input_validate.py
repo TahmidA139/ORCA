@@ -233,7 +233,7 @@ def validate_dna_sequence(sequence: str) -> tuple[bool, str]:
 def write_cleaned_fasta(
     clean_seq: str,
     accession: str,
-    output_path: str = "output/cleaned_sequence.fasta",
+    output_path: str = "output/cleaned_sequence.fasta",  # default overridden by run()
 ) -> None:
     ## Input:
     ##   - clean_seq   (str): Validated, cleaned DNA string.
@@ -260,7 +260,7 @@ def write_combined_cleaned_fasta(
     accession1: str,
     clean_seq2: str,
     accession2: str,
-    output_path: str = "output/cleaned_sequences.fasta",
+    output_path: str = "output/cleaned_sequences.fasta",  # default overridden by run()
 ) -> None:
     ## Input:
     ##   - clean_seq1  (str): Validated, cleaned DNA string for sequence 1.
@@ -373,13 +373,12 @@ def _fetch_and_validate_one(
 # ─────────────────────────────────────────────────────────────────────────────
 
 def run(
-    accession:     str,
-    email:         str,
-    accession2:    str | None = None,
-    output_fasta:  str = "output/cleaned_sequence.fasta",
-    output_fasta2: str = "output/cleaned_sequence_2.fasta",
-    fasta_file:    str | None = None,
-    fasta_file2:   str | None = None,
+    accession:  str,
+    email:      str,
+    accession2: str | None = None,
+    outdir:     str = "output",
+    fasta_file:  str | None = None,
+    fasta_file2: str | None = None,
 ) -> tuple:
     ## Input:
     ##   - accession    (str):       NCBI accession number for sequence 1.
@@ -387,8 +386,7 @@ def run(
     ##   - email        (str):       User email required by NCBI Entrez.
     ##                               Still validated even in local-file mode.
     ##   - accession2   (str|None):  NCBI accession number for sequence 2 (optional).
-    ##   - output_fasta (str):       Output path for cleaned sequence 1 FASTA.
-    ##   - output_fasta2(str):       Output path for cleaned sequence 2 FASTA.
+    ##   - outdir       (str):       Directory for all output files (default: output/).
     ##   - fasta_file   (str|None):  Local FASTA file for sequence 1 (overrides NCBI).
     ##   - fasta_file2  (str|None):  Local FASTA file for sequence 2 (overrides NCBI).
     ## Output:
@@ -407,6 +405,11 @@ def run(
     Entrez.email = email.strip()
 
     # ── Step 1 — fetch/load and validate sequence 1 ──────────────────────────
+    # Build all output paths from the single outdir argument so the caller
+    # only needs to supply one directory, not individual file paths.
+    output_fasta  = os.path.join(outdir, "cleaned_sequence.fasta")
+    output_fasta2 = os.path.join(outdir, "cleaned_sequence_2.fasta")
+
     acc1, seq1 = _fetch_and_validate_one(accession, output_fasta, fasta_file)
     if acc1 is None:
         return None, None, None, None
@@ -424,11 +427,10 @@ def run(
         write_combined_cleaned_fasta(
             clean_seq1=seq1, accession1=acc1,
             clean_seq2=seq2, accession2=acc2,
-            output_path="output/cleaned_sequences.fasta",
+            output_path=os.path.join(outdir, "cleaned_sequences.fasta"),
         )
 
         return acc1, seq1, acc2, seq2
 
     # Single sequence mode — return None for the second sequence slots
     return acc1, seq1, None, None
-
