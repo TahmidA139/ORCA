@@ -33,16 +33,11 @@ import csv
 import os
 import sys
 
-from src.input_lib.input_validate import (
-    run as validate_run,
-    validate_start_codons,
-    write_combined_cleaned_fasta,
-)
+from src.input_validate import (run as validate_run, validate_start_codons, write_combined_cleaned_fasta,)
+from src.graphics import plot_orf_map, plot_comparative_orf_map, plot_codon_usage_comparison
 from src.orf_finder_lib.orf_finder import find_orfs, CSV_FIELDNAMES
-from src.graphics_lib.graphics import plot_orf_map, plot_comparative_orf_map, plot_codon_usage_comparison
 from src.analysis_lib.orf_analysis import calculate_orf_stats, find_repeated_orfs
-from src.analysis_lib.statistics_summary import (write_stats_to_file, write_comparative_report, write_comparative_csv, write_combined_csv, 
-    print_summary,)
+from src.analysis_lib.statistics_summary import (write_stats_to_file, write_comparative_report, write_comparative_csv, write_combined_csv, print_summary,)
 
 def _run_single_sequence(
     accession:     str,
