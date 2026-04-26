@@ -323,18 +323,22 @@ def main() -> None:
     repeats1 = find_repeated_orfs(flat1)
     if repeats1:
         print(f"[INFO] Repeated ORF sequences in {acc1}: {len(repeats1)}")
-    write_stats_to_file(flat1, filename=os.path.join(outdir, "orf_summary.txt"))
 
     if comparative:
         calculate_orf_stats(flat2, seq2)
         repeats2 = find_repeated_orfs(flat2)
         if repeats2:
             print(f"[INFO] Repeated ORF sequences in {acc2}: {len(repeats2)}")
-        write_stats_to_file(flat2, filename=os.path.join(outdir, "orf_summary_seq2.txt"))
-        write_comparative_report(flat1, flat2, acc1=acc1, acc2=acc2,
-                                 filename=os.path.join(outdir, "comparison.txt"))
+        write_orf_comparison_report(
+            flat1=flat1, flat2=flat2,
+            acc1=acc1,   acc2=acc2,
+            filename=os.path.join(outdir, "orf_comparison_report.txt"),
+            codon_csv_name="codon_comparison.csv",
+        )
         write_comparative_csv(flat1, flat2, acc1=acc1, acc2=acc2,
                               filename=os.path.join(outdir, "codon_comparison.csv"))
+    else:
+        write_stats_to_file(flat1, filename=os.path.join(outdir, "orf_summary.txt"))
 
 if __name__ == "__main__":
     main()
